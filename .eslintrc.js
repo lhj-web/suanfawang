@@ -19,5 +19,6 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'comma-dangle': 'off',
     'no-alert': 'off',
+    'no-param-reassign': 'off',
   },
 };

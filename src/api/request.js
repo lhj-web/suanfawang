@@ -1,5 +1,5 @@
 import axios from 'axios';
-// import qs from 'qs';
+import qs from 'qs';
 
 export function request(config) {
   const instance = axios.create({
@@ -9,9 +9,10 @@ export function request(config) {
   });
 
   instance.interceptors.request.use(
-    (req) => req,
-    // req.data = qs.stringify(req.data);
-
+    (req) => {
+      req.data = qs.stringify(req.data);
+      return req;
+    },
     (err) => {
       console.log(err);
       return err;
@@ -37,23 +38,25 @@ export function verifyRequest(config) {
   });
 
   instance.interceptors.request.use(
-    (req) => req,
-    // const token = window.localStorage.getItem('token')
-    // if (token) {
-    //   req.headers.Authorization = `JWT ${token}`;
-    //   if (req.url === '/device/device' && req.method === 'put') {
-    //     console.log(req);
-    //     console.log(req.data);
-    //     return req
-    //   }
-    //   if (req.data) {
-    //     req.data = qs.stringify(req.data)
-    //   }
-    //   return req;
-    // }
-    // window.location.pathname = '/login'
-    // window.location.reload()
+    (req) => {
+      const token = window.localStorage.getItem('token')
+      if (token) {
+        req.headers.Authorization = `JWT ${token}`;
+        if (req.url === '/device/device' && req.method === 'put') {
+          console.log(req);
+          console.log(req.data);
+          return req
+        }
+        if (req.data) {
+          req.data = qs.stringify(req.data)
+        }
+        return req;
+      }
+      window.location.pathname = '/login'
+      window.location.reload()
 
+      return req
+    },
     (err) => {
       console.log(err);
       return err;

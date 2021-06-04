@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Home from '../views/Home.vue';
+
+const Home = () => import('../views/Home.vue')
+const EngineList = () => import('../views/EngineList.vue')
 
 Vue.use(VueRouter);
 
@@ -10,10 +12,16 @@ const routes = [
     name: 'Home',
     component: Home,
   },
+  {
+    path: '/engine-list',
+    name: 'EngineList',
+    component: EngineList
+  }
 ];
 
 const router = new VueRouter({
   routes,
+  mode: 'history'
 });
 
 export default router;
