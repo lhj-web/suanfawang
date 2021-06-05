@@ -7,7 +7,10 @@
         name="用户名"
         label="用户名"
         placeholder="用户名"
-        :rules="[{ required: true, message: '请填写用户名' }]"
+        :rules="[
+          { required: true, message: '请填写用户名' },
+          { validator: validateLength, message: '用户名长度位5-12位'}
+        ]"
       />
       <Field
         v-model="password"
@@ -15,21 +18,25 @@
         name="密码"
         label="密码"
         placeholder="密码"
-        :rules="[{ required: true, message: '请填写密码' }]"
+        :rules="[
+          { required: true, message: '请填写密码' },
+          { validator: validatePass, message: '密码长度为6-12位'}
+
+        ]"
       />
       <div style="margin: 16px">
         <Button round block native-type="submit" type="info">提交</Button>
       </div>
-      <div style="margin: 16px">
-        <a href="javascript:;" @click="showPopup" class="link">注册</a>
-        <Overlay :show="show">
-          <div class="wrapper">
-            <Register />
-            <Button round block @click="cancle">取消</Button>
-          </div>
-        </Overlay>
-      </div>
     </Form>
+    <div style="margin: 16px">
+      <a href="javascript:;" @click="showPopup" class="link">注册</a>
+      <Overlay :show="show">
+        <div class="wrapper">
+          <Register />
+          <Button round block @click="cancle">取消</Button>
+        </div>
+      </Overlay>
+    </div>
   </div>
 </template>
 
@@ -64,6 +71,12 @@ export default {
     },
     cancle() {
       this.show = false
+    },
+    validateLength(vals) {
+      return /^.{5,12}$/.test(vals)
+    },
+    validatePass(vals) {
+      return /^.{6,12}$/.test(vals)
     }
   }
 };
@@ -72,6 +85,6 @@ export default {
 <style lang="stylus" scoped>
 .login
   .link
-    color: #1989fa
+    color #1989fa
     margin-left 300px
 </style>

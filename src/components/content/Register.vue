@@ -6,7 +6,10 @@
         name="username"
         label="用户名"
         placeholder="用户名"
-        :rules="[{ required: true, message: '请填写用户名' }]"
+        :rules="[
+          { required: true, message: '请填写用户名' },
+          { validator: validateLength, message: '用户名长度为5-12位'}
+        ]"
       />
       <Field
         v-model="password"
@@ -15,7 +18,10 @@
         label="密码"
         placeholder="密码"
         ref="pass"
-        :rules="[{ required: true, message: '请填写密码' }]"
+        :rules="[
+          { required: true, message: '请填写密码' },
+          {validator: validatePass, message: '密码长度为6-12位'}
+        ]"
       />
       <Field
         v-model="confirm"
@@ -58,8 +64,8 @@
       <Field name="user_type" label="单选框">
         <template #input>
           <RadioGroup v-model="radio" direction="horizontal">
-            <Radio :name=0>普通用户</Radio>
-            <Radio :name=1>技术员</Radio>
+            <Radio :name="0">普通用户</Radio>
+            <Radio :name="1">技术员</Radio>
           </RadioGroup>
         </template>
       </Field>
@@ -102,10 +108,15 @@ export default {
     },
     validator(vals) {
       return vals === this.password
+    },
+    validateLength(vals) {
+      return /^.{5,12}$/.test(vals)
+    },
+    validatePass(vals) {
+      return /^.{6,12}$/.test(vals)
     }
   }
 };
 </script>
 
-<style lang="stylus" scoped>
-</style>
+<style lang="stylus" scoped></style>
