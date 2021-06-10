@@ -12,6 +12,7 @@
 
 <script>
 import { Swipe, SwipeItem } from 'vant'
+import { getSwiperImg } from 'api/swiper'
 
 export default {
   name: 'Swiper',
@@ -21,6 +22,11 @@ export default {
   },
   data() {
     return {};
+  },
+  mounted() {
+    getSwiperImg().then((res) => {
+      console.log(res);
+    })
   },
 };
 </script>

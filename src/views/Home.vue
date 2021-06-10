@@ -9,6 +9,9 @@
       <Tab title="登录">
         <Login />
       </Tab>
+      <Tab title="我的">
+        <profile />
+      </Tab>
     </Tabs>
   </div>
 </template>
@@ -18,6 +21,7 @@ import { Tab, Tabs } from 'vant'
 import Login from '../components/content/Login.vue';
 import Swiper from '../components/common/Swiper.vue';
 import HomeList from '../components/content/HomeList.vue';
+import Profile from '../components/content/Profile.vue';
 
 export default {
   name: 'Home',
@@ -27,6 +31,7 @@ export default {
     Login,
     Swiper,
     HomeList,
+    Profile,
   },
   data() {
     return {

@@ -105,6 +105,7 @@ export default {
   },
   methods: {
     onLoad() {
+
     },
     openDetail(id) {
       console.log(id);

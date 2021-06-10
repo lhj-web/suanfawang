@@ -4,7 +4,7 @@
     <Form @submit="onSubmit">
       <Field
         v-model="username"
-        name="用户名"
+        name="username"
         label="用户名"
         placeholder="用户名"
         :rules="[
@@ -15,7 +15,7 @@
       <Field
         v-model="password"
         type="password"
-        name="密码"
+        name="password"
         label="密码"
         placeholder="密码"
         :rules="[
@@ -32,7 +32,7 @@
       <a href="javascript:;" @click="showPopup" class="link">注册</a>
       <Overlay :show="show">
         <div class="wrapper">
-          <Register />
+          <Register v-on:success="cancelShow()" />
           <Button round block @click="cancle">取消</Button>
         </div>
       </Overlay>
@@ -42,8 +42,9 @@
 
 <script>
 import {
-  Form, Field, Button, Overlay
+  Form, Field, Button, Overlay, Notify
 } from 'vant'
+import { login } from 'api/user'
 import Register from './Register.vue'
 
 export default {
@@ -64,7 +65,16 @@ export default {
   },
   methods: {
     onSubmit(values) {
-      console.log(values);
+      login(values).then((res) => {
+        if (res.status === 403) {
+          Notify({ type: 'danger', message: res.data.message })
+        } else {
+          Notify({ type: 'success', message: '登陆成功' })
+          window.localStorage.setItem('token', res.token)
+        }
+      }).catch(() => {
+        Notify({ type: 'warning', message: '请求超时' })
+      })
     },
     showPopup() {
       this.show = true
@@ -77,6 +87,9 @@ export default {
     },
     validatePass(vals) {
       return /^.{6,12}$/.test(vals)
+    },
+    cancelShow() {
+      this.show = false
     }
   }
 };

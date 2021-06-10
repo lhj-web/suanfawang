@@ -21,13 +21,10 @@ export function request(config) {
 
   instance.interceptors.response.use(
     (res) => res.data,
-    (err) => {
-      console.log(err);
-      return err;
-    }
+    (err) => err.response
   );
 
-  return instance(config);
+  return instance(config)
 }
 
 export function verifyRequest(config) {
@@ -41,20 +38,14 @@ export function verifyRequest(config) {
     (req) => {
       const token = window.localStorage.getItem('token')
       if (token) {
-        req.headers.Authorization = `JWT ${token}`;
-        if (req.url === '/device/device' && req.method === 'put') {
-          console.log(req);
-          console.log(req.data);
-          return req
-        }
+        req.headers.Authorization = token;
         if (req.data) {
           req.data = qs.stringify(req.data)
         }
         return req;
       }
-      window.location.pathname = '/login'
-      window.location.reload()
-
+      window.location.pathname = '/'
+      alert('请先登录')
       return req
     },
     (err) => {
@@ -67,6 +58,35 @@ export function verifyRequest(config) {
     (res) => res.data,
     (err) => err
   )
+
+  return instance(config);
+}
+
+export function jsonRequest(config) {
+  const instance = axios.create({
+    baseURL: '/api',
+    timeout: 5000,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  instance.interceptors.request.use(
+    (req) => {
+      req.data = qs.stringify(req.data);
+      return req;
+    },
+    (err) => {
+      console.log(err);
+      return err;
+    }
+  );
+
+  instance.interceptors.response.use(
+    (res) => res.data,
+    (err) => {
+      console.log(err);
+      return err;
+    }
+  );
 
   return instance(config);
 }

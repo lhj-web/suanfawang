@@ -78,8 +78,9 @@
 
 <script>
 import {
-  Form, Field, Button, RadioGroup, Radio
+  Form, Field, Button, RadioGroup, Radio, Notify,
 } from 'vant'
+import { register } from 'api/user'
 
 export default {
   name: 'Register',
@@ -88,7 +89,7 @@ export default {
     Field,
     Button,
     RadioGroup,
-    Radio
+    Radio,
   },
   data() {
     return {
@@ -104,7 +105,18 @@ export default {
   },
   methods: {
     onSubmit(values) {
-      console.log(values);
+      delete values.confirm
+      register(values).then((res) => {
+        if (res.status === 403) {
+          Notify({ type: 'danger', message: res.data.message })
+        } else {
+          Notify({ type: 'success', message: '注册成功' })
+          this.$emit('success')
+        }
+      }).catch((err) => {
+        console.log(err);
+        Notify({ type: 'warning', message: '请求超时' })
+      })
     },
     validator(vals) {
       return vals === this.password

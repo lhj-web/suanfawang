@@ -1,9 +1,15 @@
-import { url } from 'stylus'
-import { request, verifyRequest } from './request'
+import { request, verifyRequest, jsonRequest } from './request'
+
+function generateUuid() {
+  const tempUrl = URL.createObjectURL(new Blob());
+  const uuid = tempUrl.toString();
+  URL.revokeObjectURL(tempUrl);
+  return uuid.substr(uuid.lastIndexOf('/') + 1);
+}
 
 export function register(data) {
   return request({
-    url: '/api/register',
+    url: '/api/regiser',
     method: 'post',
     data
   })

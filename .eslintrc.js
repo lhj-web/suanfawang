@@ -20,5 +20,6 @@ module.exports = {
     'comma-dangle': 'off',
     'no-alert': 'off',
     'no-param-reassign': 'off',
+    'camelcase': 'off',
   },
 };
