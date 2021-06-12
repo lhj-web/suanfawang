@@ -9,13 +9,14 @@
     <Swiper />
     <br />
     <Tabs v-model="active">
-      <Tab title="web开发">
-        <simple-list />
+      <Tab
+        v-for="item of $store.state.listName"
+        :key="item.id"
+        :title="item.name"
+        v-show="item.is_delete === 0"
+      >
+        <simple-list :getDataList="getListData" :id="item.id" />
       </Tab>
-      <Tab title="工科业务"></Tab>
-      <Tab title="社科业务"></Tab>
-      <Tab title="论文辅导"></Tab>
-      <Tab title="企业项目"></Tab>
     </Tabs>
     <Button
       round
@@ -36,14 +37,14 @@
           required
           :rules="[{ required: true }]"
         />
-        <Field name="cate_id" label="类型" size="large" required >
+        <Field name="cate_id" label="类型" size="large" required>
           <template #input>
             <RadioGroup v-model="radio">
-              <Radio :name="0">web开发</Radio>
-              <Radio :name="1">工科业务</Radio>
-              <Radio :name="2">社科业务</Radio>
-              <Radio :name="3">论文辅导</Radio>
-              <Radio :name="4">企业项目</Radio>
+              <Radio
+                v-for="item in $store.state.listName"
+                :key="item.id"
+                :name="item.id"
+              >{{item.name}}</Radio>
             </RadioGroup>
           </template>
         </Field>
@@ -67,6 +68,17 @@
             <span style="margin-left: 5px;font-size: 17px">元</span>
           </template>
         </Field>
+        <Field
+          name="code"
+          label="验证码"
+          required
+          v-model="code"
+          :rules="[{ required: true, message: '请输入验证码' }]"
+        >
+          <template #button>
+            <img :src="img" alt style="width: 100px" @click="changeCode()" />
+          </template>
+        </Field>
         <Field name="cover_img" label="上传图片">
           <template #input>
             <Uploader v-model="uploader" />
@@ -82,8 +94,10 @@
 
 <script>
 import {
-  NavBar, Icon, Tabs, Tab, Button, Popup, Form, Field, RadioGroup, Radio, Uploader, Stepper
+  NavBar, Icon, Tabs, Tab, Button, Popup, Form, Field, RadioGroup, Radio, Uploader, Stepper, Notify
 } from 'vant'
+import { getListData } from 'api/list-data'
+import { getAuthCode, addRequirement } from 'api/add-news'
 import Swiper from '../components/common/Swiper.vue';
 import SimpleList from '../components/common/SimpleList.vue';
 
@@ -108,19 +122,64 @@ export default {
   data() {
     return {
       show: false,
-      radio: 0,
+      radio: 1,
       title: '',
       content: '',
-      uploader: [{ url: 'https://img01.yzcdn.cn/vant/leaf.jpg' }],
-      price: 500
+      uploader: [],
+      price: 500,
+      getListData,
+      code: '',
+      img: '',
+      uuid: '',
     };
+  },
+  mounted() {
+    this.changeCode()
   },
   methods: {
     showPopup() {
       this.show = true
     },
     onSubmit(vals) {
-      console.log(vals);
+      const blob = this.dataURItoBlob(vals.cover_img[0].content)
+      const url = URL.createObjectURL(blob);
+      vals.cover_img = 'blob:d3958f5c-0777-0845-9dcf-2cb28783acaf'
+      addRequirement(vals, this.uuid).then((res) => {
+        if (res.status === 401) {
+          window.localStorage.removeItem('token')
+          Notify({ type: 'danger', message: '请先登录' })
+          this.$router.push('/')
+          this.$store.commit('setIndexActive')
+        } else if (res.status === 403) {
+          Notify({ type: 'warning', message: res.data.message })
+        } else {
+          Notify({ type: 'success', message: '发布成功' })
+          this.show = false
+        }
+      })
+    },
+    generateUuid() {
+      const tempUrl = URL.createObjectURL(new Blob());
+      const uuid = tempUrl.toString();
+      URL.revokeObjectURL(tempUrl);
+      return uuid.substr(uuid.lastIndexOf('/') + 1);
+    },
+    changeCode() {
+      this.uuid = this.generateUuid()
+      this.$store.dispatch('getCateList')
+      getAuthCode(this.uuid).then((res) => {
+        this.img = res.data
+      })
+    },
+    dataURItoBlob(dataURI) {
+      const byteString = atob(dataURI.split(',')[1]);
+      const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i += 1) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      return new Blob([ab], { type: mimeString });
     }
   },
   computed: {
@@ -137,5 +196,5 @@ export default {
 
 <style lang="stylus" scoped>
 .engine-list
-  padding-bottom: 20px
+  padding-bottom 20px
 </style>

@@ -1,12 +1,5 @@
 import { request, verifyRequest, jsonRequest } from './request'
 
-function generateUuid() {
-  const tempUrl = URL.createObjectURL(new Blob());
-  const uuid = tempUrl.toString();
-  URL.revokeObjectURL(tempUrl);
-  return uuid.substr(uuid.lastIndexOf('/') + 1);
-}
-
 export function register(data) {
   return request({
     url: '/api/regiser',
@@ -32,7 +25,7 @@ export function getUserInfo() {
 export function updateUserInfo(data) {
   return verifyRequest({
     url: '/my/userinfo',
-    method: 'put',
+    method: 'post',
     data
   })
 }

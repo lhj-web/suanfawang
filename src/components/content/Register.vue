@@ -17,7 +17,6 @@
         name="password"
         label="密码"
         placeholder="密码"
-        ref="pass"
         :rules="[
           { required: true, message: '请填写密码' },
           {validator: validatePass, message: '密码长度为6-12位'}

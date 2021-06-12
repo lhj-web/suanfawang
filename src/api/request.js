@@ -44,19 +44,17 @@ export function verifyRequest(config) {
         }
         return req;
       }
-      window.location.pathname = '/'
-      alert('请先登录')
       return req
     },
     (err) => {
       console.log(err);
-      return err;
+      return err.response;
     }
   );
 
   instance.interceptors.response.use(
     (res) => res.data,
-    (err) => err
+    (err) => err.response
   )
 
   return instance(config);
@@ -84,7 +82,7 @@ export function jsonRequest(config) {
     (res) => res.data,
     (err) => {
       console.log(err);
-      return err;
+      return err
     }
   );
 

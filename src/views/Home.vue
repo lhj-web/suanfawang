@@ -1,15 +1,15 @@
 <template>
   <div class="home">
     <Swiper />
-    <Tabs v-model="active">
+    <Tabs v-model="$store.state.indexActive">
       <Tab title="首页">
         <HomeList />
       </Tab>
       <Tab title="搜索"></Tab>
-      <Tab title="登录">
+      <Tab title="登录" v-if="!isToken">
         <Login />
       </Tab>
-      <Tab title="我的">
+      <Tab title="我的" v-if="isToken">
         <profile />
       </Tab>
     </Tabs>
@@ -35,7 +35,7 @@ export default {
   },
   data() {
     return {
-      active: 0
+      isToken: !!window.localStorage.getItem('token'),
     }
   },
 

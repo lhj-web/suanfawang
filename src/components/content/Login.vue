@@ -71,6 +71,7 @@ export default {
         } else {
           Notify({ type: 'success', message: '登陆成功' })
           window.localStorage.setItem('token', res.token)
+          window.location.reload()
         }
       }).catch(() => {
         Notify({ type: 'warning', message: '请求超时' })
