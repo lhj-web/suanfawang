@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 const Home = () => import('../views/Home.vue')
 const EngineList = () => import('../views/EngineList.vue')
 const Help = () => import('../views/Help.vue')
+const ListDetail = () => import('../views/ListDetail.vue')
 
 Vue.use(VueRouter);
 
@@ -22,6 +23,11 @@ const routes = [
     path: '/help',
     name: 'Help',
     component: Help
+  },
+  {
+    path: '/list-detail/:id',
+    name: 'ListDetail',
+    component: ListDetail
   }
 ];
 

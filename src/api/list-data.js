@@ -19,6 +19,16 @@ export function getListData(pagenum, cate_id) {
 
 export function getDetail(id) {
   return request({
-    url: `/api/notices/${id}`
+    url: `/api/notice/${id}`
+  })
+}
+
+export function getMyList(pagenum) {
+  return verifyRequest({
+    url: '/my/notice',
+    params: {
+      pagenum,
+      pagesize: 5
+    }
   })
 }

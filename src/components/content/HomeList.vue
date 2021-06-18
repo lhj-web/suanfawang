@@ -22,7 +22,6 @@
 import {
   Collapse, CollapseItem, Cell, Notify
 } from 'vant'
-import { getCateList } from 'api/list-data'
 
 export default {
   name: 'HomeList',

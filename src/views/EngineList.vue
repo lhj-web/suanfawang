@@ -25,6 +25,7 @@
       size="large"
       style="position: fixed; bottom: 0"
       @click="showPopup()"
+      v-show="!$store.state.isUser"
     >发布需求</Button>
     <Popup v-model="show" position="bottom" closeable>
       <Form @submit="onSubmit">
@@ -64,7 +65,8 @@
         />
         <Field name="price" label="赏金" required>
           <template #input>
-            <Stepper v-model="price" theme="round" />
+            <Stepper v-model="price" theme="round" :decimal-length="1"
+              input-width="70px" />
             <span style="margin-left: 5px;font-size: 17px">元</span>
           </template>
         </Field>
@@ -98,6 +100,7 @@ import {
 } from 'vant'
 import { getListData } from 'api/list-data'
 import { getAuthCode, addRequirement } from 'api/add-news'
+import { v4 as uuid4 } from 'uuid'
 import Swiper from '../components/common/Swiper.vue';
 import SimpleList from '../components/common/SimpleList.vue';
 
@@ -134,6 +137,14 @@ export default {
     };
   },
   mounted() {
+    let sid = ''
+    if (localStorage.getItem('sid')) {
+      sid = localStorage.getItem('sid')
+    } else {
+      sid = uuid4()
+      localStorage.setItem('sid', sid)
+    }
+    this.$store.commit('setSid', sid)
     this.changeCode()
   },
   methods: {
@@ -141,12 +152,17 @@ export default {
       this.show = true
     },
     onSubmit(vals) {
-      const blob = this.dataURItoBlob(vals.cover_img[0].content)
-      const url = URL.createObjectURL(blob);
-      vals.cover_img = 'blob:d3958f5c-0777-0845-9dcf-2cb28783acaf'
-      addRequirement(vals, this.uuid).then((res) => {
+      const data = new FormData()
+      if (vals.cover_img.length > 0) {
+        const img = vals.cover_img[0].file
+        vals.cover_img = img
+      }
+      Object.keys(vals).forEach((key) => {
+        data.append(key, vals[key]);
+      });
+      data.append('uuid', this.$store.state.sid)
+      addRequirement(data).then((res) => {
         if (res.status === 401) {
-          window.localStorage.removeItem('token')
           Notify({ type: 'danger', message: '请先登录' })
           this.$router.push('/')
           this.$store.commit('setIndexActive')
@@ -158,29 +174,13 @@ export default {
         }
       })
     },
-    generateUuid() {
-      const tempUrl = URL.createObjectURL(new Blob());
-      const uuid = tempUrl.toString();
-      URL.revokeObjectURL(tempUrl);
-      return uuid.substr(uuid.lastIndexOf('/') + 1);
-    },
     changeCode() {
-      this.uuid = this.generateUuid()
       this.$store.dispatch('getCateList')
-      getAuthCode(this.uuid).then((res) => {
+      const { sid } = this.$store.state
+      getAuthCode(sid).then((res) => {
         this.img = res.data
       })
     },
-    dataURItoBlob(dataURI) {
-      const byteString = atob(dataURI.split(',')[1]);
-      const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i += 1) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      return new Blob([ab], { type: mimeString });
-    }
   },
   computed: {
     active: {

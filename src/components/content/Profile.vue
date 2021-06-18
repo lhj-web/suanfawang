@@ -23,8 +23,8 @@
         <Button icon="plus" type="default" size="mini">上传头像</Button>
       </Uploader>
     </div>
-    <Collapse v-model="active">
-      <CollapseItem name="0" size="large" title="修改个人信息">
+    <Collapse v-model="active" accordion>
+      <CollapseItem name="0" title="修改个人信息" icon="user-circle-o">
         <Form @submit="onSubmit">
           <Field
             v-model="nickname"
@@ -72,7 +72,38 @@
           </div>
         </Form>
       </CollapseItem>
-      <CollapseItem name="1" size="large" title="修改密码">
+      <collapse-item name="1" title="发布的订单" icon="comment-o">
+        <List
+          v-model="loading"
+          :finished="finished"
+          finished-text="没有更多了"
+          @load="onLoad"
+          :error.sync="error"
+          error-text="请求失败，点击重新加载"
+        >
+          <Card v-for="item in list" :key="item.id" @click="modifyOrder(item.id)">
+            <template #title>
+              <h2 style="color: #011627;font-size: 19px">{{item.title}}</h2>
+            </template>
+            <template #tags>
+              <span style="color: #6D6875">{{ $moment(item.pub_date).fromNow() }}</span>
+            </template>
+            <template #footer>
+              <Tag plain type="danger" v-show="item.state">已被接单</Tag>
+              <Tag plain type="primary" v-show="!item.state">未接单</Tag>
+              <Icon name="eye-o" style="margin: 0 3px 0 10px;vertical-align: middle" size="16" />
+              <span style="vertical-align: middle;color: #6D6875">{{item.view_count}}</span>
+            </template>
+            <template #price>
+              <Tag plain type="warning" size="large">赏金</Tag>
+              <span
+                style="margin-left: 8px;font-size: 15px;color: #FF6B6B"
+              >{{ item.price | formatPrice }}</span>
+            </template>
+          </Card>
+        </List>
+      </collapse-item>
+      <CollapseItem name="2" title="修改密码" icon="closed-eye">
         <Form @submit="submit">
           <Field
             name="oldPwd"
@@ -108,7 +139,60 @@
           </div>
         </Form>
       </CollapseItem>
+      <collapse-item name="3" title="联系客服" icon="phone-o"></collapse-item>
     </Collapse>
+    <Popup v-model="show" position="bottom" closeable>
+      <Form @submit="onSubmitM">
+        <Field
+          v-model="item.title"
+          name="title"
+          label="标题"
+          placeholder="请填写标题"
+          size="large"
+          required
+          :rules="[{ required: true }]"
+        />
+        <Field name="cate_id" label="类型" size="large" required>
+          <template #input>
+            <RadioGroup v-model="item.cate_name">
+              <Radio
+                v-for="item in $store.state.listName"
+                :key="item.id"
+                :name="item.id"
+              >{{item.name}}</Radio>
+            </RadioGroup>
+          </template>
+        </Field>
+        <Field
+          v-model="item.content"
+          name="content"
+          label="内容"
+          rows="2"
+          type="textarea"
+          maxlength="50"
+          placeholder="请输入需求内容"
+          show-word-limit
+          size="large"
+          required
+          clearable
+          :rules="[{ required: true }]"
+        />
+        <Field name="price" label="赏金" required>
+          <template #input>
+            <Stepper v-model="price" :decimal-length="1" input-width="70px" theme="round" />
+            <span style="margin-left: 5px;font-size: 17px">元</span>
+          </template>
+        </Field>
+        <Field name="cover_img" label="上传图片">
+          <template #input>
+            <Uploader v-model="uploader" :max-count="1" />
+          </template>
+        </Field>
+        <div style="margin: 16px 0">
+          <Button round block native-type="submit" type="info">提交修改</Button>
+        </div>
+      </Form>
+    </Popup>
     <br />
     <Button block type="info" @click="exit">退出</Button>
   </div>
@@ -117,22 +201,41 @@
 <script>
 import {
   Image as VanImage,
-  Form, Field, Button, RadioGroup, Radio, Notify, Collapse, CollapseItem, Uploader,
+  Form, Field, Button,
+  RadioGroup, Radio, Notify,
+  Collapse, CollapseItem, Uploader,
+  List, Card, Tag, Icon, Popup, Stepper
 } from 'vant'
 import {
   getUserInfo, changeAvatar, updateUserInfo, resetPassword
 } from 'api/user'
+import { getMyList, getDetail } from 'api/list-data'
+import { updateRequirement } from 'api/add-news'
 import avatar from 'assets/img/avatar.png'
 
 export default {
   name: 'Profile',
   components: {
-    VanImage, Form, Field, Button, RadioGroup, Radio, Collapse, CollapseItem, Uploader
+    VanImage,
+    Form,
+    Field,
+    Button,
+    RadioGroup,
+    Radio,
+    Collapse,
+    CollapseItem,
+    Uploader,
+    List,
+    Card,
+    Tag,
+    Icon,
+    Popup,
+    Stepper
   },
   data() {
     return {
       avatar,
-      active: ['0'],
+      active: '0',
       nickname: '',
       mobile: '',
       email: '',
@@ -142,11 +245,33 @@ export default {
       password: '',
       confirm: '',
       oldPwd: '',
+      list: [],
+      loading: false,
+      finished: false,
+      activeNames: ['0'],
+      index: 0,
+      error: false,
+      item: '',
+      show: false,
+      uploader: [],
+      price: 0,
     };
+  },
+  filters: {
+    formatPrice(value) {
+      if (!value) {
+        return '无'
+      }
+      return `${value.toFixed(2)}元`
+    }
   },
   mounted() {
     getUserInfo()
       .then((res) => {
+        if (res.status === 401) {
+          Notify({ type: 'danger', message: '请先登录' })
+          window.location.reload()
+        }
         const {
           nickname, email, mobile, qq, wx, user_type, user_pic
         } = res.data
@@ -157,6 +282,7 @@ export default {
         this.qq = qq
         this.wx = wx
         this.radio = user_type ? 1 : 0
+        this.$store.commit('setIsUser', user_type)
       })
       .catch(() => {
         Notify({ type: 'warning', message: '请求超时' })
@@ -207,6 +333,62 @@ export default {
     exit() {
       window.localStorage.removeItem('token')
       window.location.reload()
+    },
+    onLoad() {
+      this.index += 1
+      getMyList(this.index)
+        .then((res) => {
+          if (res.data.length > 0) {
+            this.list.push(...res.data)
+          }
+          this.loading = false
+          if (this.list.length >= res.total) {
+            this.finished = true
+          }
+        })
+        .catch(() => {
+          this.error = true
+          Notify({ type: 'warning', message: '请求超时' })
+        })
+    },
+    modifyOrder(id) {
+      getDetail(id).then((res) => {
+        console.log(res);
+        switch (res.data.cate_name) {
+          case '工科业务':
+            res.data.cate_name = 1
+            break;
+          case '社科业务':
+            res.data.cate_name = 2
+            break
+          case '没接汇总':
+            res.data.cate_name = 3
+            break
+          case '论文辅导':
+            res.data.cate_name = 4
+            break
+          case 'web开发':
+            res.data.cate_name = 5
+            break
+          case '企业项目':
+            res.data.cate_name = 6
+            break
+          default:
+            Notify({ type: 'danger', message: '该分类不存在' })
+        }
+        this.price = res.data.price
+        if (res.data.cover_img) {
+          this.uploader = []
+          this.uploader.push({ url: res.data.cover_img })
+        }
+        this.item = res.data
+      }).catch(() => {
+        Notify({ type: 'warning', message: '请求超时' })
+      })
+      this.show = true
+    },
+    onSubmitM(vals) {
+      console.log(vals);
     }
   }
 };
