@@ -32,3 +32,13 @@ export function getMyList(pagenum) {
     }
   })
 }
+
+export function getMyList1(pagenum) {
+  return verifyRequest({
+    url: '/my/receives',
+    params: {
+      pagenum,
+      pagesize: 5
+    }
+  })
+}

@@ -72,7 +72,7 @@
           </div>
         </Form>
       </CollapseItem>
-      <collapse-item name="1" title="发布的订单" icon="comment-o">
+      <collapse-item name="1" title="发布的订单" icon="comment-o" v-show="!$store.state.isUser">
         <List
           v-model="loading"
           :finished="finished"
@@ -101,6 +101,55 @@
               >{{ item.price | formatPrice }}</span>
             </template>
           </Card>
+          <template #right>
+            <Button
+              square
+              type="danger"
+              text="删除"
+              style="height: 100%"
+              @click="deleteOrder(item.id)"
+            />
+          </template>
+        </List>
+      </collapse-item>
+      <collapse-item name="1" title="已接的订单" icon="comment-o" v-show="$store.state.isUser">
+        <List
+          v-model="loading"
+          :finished="finished"
+          finished-text="没有更多了"
+          @load="onLoad1"
+          :error.sync="error"
+          error-text="请求失败，点击重新加载"
+        >
+          <Card v-for="item in list" :key="item.id" @click="cancelOrder(item.id)">
+            <template #title>
+              <h2 style="color: #011627;font-size: 19px">{{item.title}}</h2>
+            </template>
+            <template #tags>
+              <span style="color: #6D6875">接单时间：{{ $moment(item.pub_date).fromNow() }}</span>
+            </template>
+            <template #footer>
+              <Tag plain type="danger" v-show="item.state">已被接单</Tag>
+              <Tag plain type="primary" v-show="!item.state">未接单</Tag>
+              <Icon name="eye-o" style="margin: 0 3px 0 10px;vertical-align: middle" size="16" />
+              <span style="vertical-align: middle;color: #6D6875">{{item.view_count}}</span>
+            </template>
+            <template #price>
+              <Tag plain type="warning" size="large">赏金</Tag>
+              <span
+                style="margin-left: 8px;font-size: 15px;color: #FF6B6B"
+              >{{ item.price | formatPrice }}</span>
+            </template>
+          </Card>
+          <template #right>
+            <Button
+              square
+              type="danger"
+              text="删除"
+              style="height: 100%"
+              @click="deleteOrder(item.id)"
+            />
+          </template>
         </List>
       </collapse-item>
       <CollapseItem name="2" title="修改密码" icon="closed-eye">
@@ -139,9 +188,11 @@
           </div>
         </Form>
       </CollapseItem>
-      <collapse-item name="3" title="联系客服" icon="phone-o"></collapse-item>
+      <collapse-item name="3" title="联系客服" icon="phone-o">
+        <Cell v-for="(key, value) in service" :key="key" :title="value" :value="key" />
+      </collapse-item>
     </Collapse>
-    <Popup v-model="show" position="bottom" closeable>
+    <Popup v-model="show" position="bottom" closeable get-container="#app">
       <Form @submit="onSubmitM">
         <Field
           v-model="item.title"
@@ -169,7 +220,7 @@
           label="内容"
           rows="2"
           type="textarea"
-          maxlength="50"
+          maxlength="200"
           placeholder="请输入需求内容"
           show-word-limit
           size="large"
@@ -179,7 +230,7 @@
         />
         <Field name="price" label="赏金" required>
           <template #input>
-            <Stepper v-model="price" :decimal-length="1" input-width="70px" theme="round" />
+            <Stepper v-model="price" integer input-width="70px" theme="round" />
             <span style="margin-left: 5px;font-size: 17px">元</span>
           </template>
         </Field>
@@ -188,10 +239,22 @@
             <Uploader v-model="uploader" :max-count="1" />
           </template>
         </Field>
+        <Field name="state" label="状态" required>
+          <template #input>
+            <RadioGroup v-model="state" direction="horizontal">
+              <Radio :name="0">未被接单</Radio>
+              <Radio :name="1">已被接单</Radio>
+            </RadioGroup>
+          </template>
+        </Field>
         <div style="margin: 16px 0">
           <Button round block native-type="submit" type="info">提交修改</Button>
         </div>
       </Form>
+      <Button round block type="danger" @click="deleteOrder">删除</Button>
+    </Popup>
+    <Popup v-model="show1" position="bottom">
+      <Button type="danger" block @click="cancel">取消接单</Button>
     </Popup>
     <br />
     <Button block type="info" @click="exit">退出</Button>
@@ -201,16 +264,16 @@
 <script>
 import {
   Image as VanImage,
-  Form, Field, Button,
+  Form, Field, Button, Cell,
   RadioGroup, Radio, Notify,
   Collapse, CollapseItem, Uploader,
   List, Card, Tag, Icon, Popup, Stepper
 } from 'vant'
 import {
-  getUserInfo, changeAvatar, updateUserInfo, resetPassword
+  getUserInfo, changeAvatar, updateUserInfo, resetPassword, getServiceInfo, cancelOrder
 } from 'api/user'
-import { getMyList, getDetail } from 'api/list-data'
-import { updateRequirement } from 'api/add-news'
+import { getMyList, getDetail, getMyList1 } from 'api/list-data'
+import { updateRequirement, deleteRequirement } from 'api/add-news'
 import avatar from 'assets/img/avatar.png'
 
 export default {
@@ -230,7 +293,8 @@ export default {
     Tag,
     Icon,
     Popup,
-    Stepper
+    Stepper,
+    Cell,
   },
   data() {
     return {
@@ -255,6 +319,10 @@ export default {
       show: false,
       uploader: [],
       price: 0,
+      id: '',
+      state: '',
+      service: {},
+      show1: false
     };
   },
   filters: {
@@ -262,19 +330,27 @@ export default {
       if (!value) {
         return '无'
       }
-      return `${value.toFixed(2)}元`
+      return `${value}元`
     }
   },
   mounted() {
+    this.$socket.emit('connect', 1)
     getUserInfo()
       .then((res) => {
         if (res.status === 401) {
           Notify({ type: 'danger', message: '请先登录' })
           window.location.reload()
         }
+        if (res.data.user_pic) {
+          localStorage.setItem('avatar', res.data.user_pic)
+        }
+        if (res.data.nickname) {
+          localStorage.setItem('nickname', res.data.nickname)
+        }
         const {
-          nickname, email, mobile, qq, wx, user_type, user_pic
+          nickname, email, mobile, qq, wx, user_type, user_pic, id
         } = res.data
+        localStorage.setItem('id', id)
         this.avatar = user_pic || avatar
         this.nickname = nickname || 'user'
         this.email = email
@@ -287,24 +363,29 @@ export default {
       .catch(() => {
         Notify({ type: 'warning', message: '请求超时' })
       })
+    getServiceInfo()
+      .then((res) => {
+        this.service = res.data
+      })
   },
   methods: {
     onSubmit(vals) {
       updateUserInfo(vals)
         .then((res) => {
           Notify({ type: 'success', message: res.message })
+          localStorage.setItem('nickname', vals.nickname)
         })
         .catch(() => {
           Notify({ type: 'warning', message: '请求超时' })
         })
     },
     afterRead(file) {
-      console.log(file.content);
       const base64 = { avatar: file.content }
       changeAvatar(base64)
         .then((res) => {
           Notify({ type: 'success', message: res.message })
           this.avatar = file.content
+          localStorage.setItem('avatar', file.content)
         })
         .catch(() => {
           Notify({ type: 'warning', message: '请求超时' })
@@ -338,6 +419,29 @@ export default {
       this.index += 1
       getMyList(this.index)
         .then((res) => {
+          if (res.status === 401) {
+            window.location.reload()
+          }
+          if (res.data.length > 0) {
+            this.list.push(...res.data)
+          }
+          this.loading = false
+          if (this.list.length >= res.total) {
+            this.finished = true
+          }
+        })
+        .catch(() => {
+          this.error = true
+          Notify({ type: 'warning', message: '请求超时' })
+        })
+    },
+    onLoad1() {
+      this.index += 1
+      getMyList1(this.index)
+        .then((res) => {
+          if (res.status === 401) {
+            window.location.reload()
+          }
           if (res.data.length > 0) {
             this.list.push(...res.data)
           }
@@ -353,7 +457,6 @@ export default {
     },
     modifyOrder(id) {
       getDetail(id).then((res) => {
-        console.log(res);
         switch (res.data.cate_name) {
           case '工科业务':
             res.data.cate_name = 1
@@ -382,13 +485,60 @@ export default {
           this.uploader.push({ url: res.data.cover_img })
         }
         this.item = res.data
+        this.id = id
+        this.show = true
+        this.state = res.data.state
       }).catch(() => {
         Notify({ type: 'warning', message: '请求超时' })
       })
-      this.show = true
     },
     onSubmitM(vals) {
-      console.log(vals);
+      const data = new FormData()
+      if (vals.cover_img.length > 0) {
+        const img = vals.cover_img[0].file
+        vals.cover_img = img
+      } else {
+        vals.cover_img = ''
+      }
+      Object.keys(vals).forEach((key) => {
+        data.append(key, vals[key]);
+      });
+      updateRequirement(this.id, data).then((res) => {
+        if (!res.status) {
+          Notify({ type: 'success', message: '更新成功' })
+          this.show = false
+        } else {
+          Notify({ type: 'danger', message: '更新失败' })
+        }
+      }).catch(() => {
+        Notify({ type: 'warning', message: '请求超时' })
+      })
+    },
+    deleteOrder() {
+      deleteRequirement(this.id).then((res) => {
+        if (!res.status) {
+          Notify({ type: 'success', message: '删除成功' })
+          const index = this.list.findIndex((item) => item.id === this.id)
+          this.$delete(this.list, index)
+          this.show = false
+        }
+      }).catch(() => {
+        Notify({ type: 'warning', message: '请求超时' })
+      })
+    },
+    cancelOrder(id) {
+      this.id = id
+      this.show1 = true
+    },
+    cancel() {
+      cancelOrder(this.id).then((res) => {
+        if (!res.status) {
+          Notify({ type: 'success', message: '取消成功' })
+          const index = this.list.findIndex((item) => item.id === this.id)
+          this.$delete(this.list, index)
+          this.show1 = false
+        }
+      })
     }
   }
 };

@@ -107,8 +107,6 @@ export function uploadRequest(config) {
       const token = window.localStorage.getItem('token')
       if (token) {
         req.headers.Authorization = token;
-        console.log(req);
-        return req;
       }
       return req
     },

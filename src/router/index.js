@@ -5,6 +5,7 @@ const Home = () => import('../views/Home.vue')
 const EngineList = () => import('../views/EngineList.vue')
 const Help = () => import('../views/Help.vue')
 const ListDetail = () => import('../views/ListDetail.vue')
+const ChatRoom = () => import('../views/ChatRoom.vue')
 
 Vue.use(VueRouter);
 
@@ -28,6 +29,11 @@ const routes = [
     path: '/list-detail/:id',
     name: 'ListDetail',
     component: ListDetail
+  },
+  {
+    path: '/chat-room/:id',
+    name: 'ChatRoom',
+    component: ChatRoom,
   }
 ];
 

@@ -3,13 +3,38 @@
     <Swiper />
     <Tabs v-model="$store.state.indexActive">
       <Tab title="首页">
+        <template #title>
+          <Icon name="wap-home-o" size="20px" style="vertical-align: middle; margin-right: 3px"/>首页
+        </template>
         <HomeList />
       </Tab>
-      <Tab title="搜索"></Tab>
-      <Tab title="登录" v-if="!isToken">
+      <Tab badge="1">
+        <template #title>
+          <Icon
+            name="chat-o"
+            size="20px"
+            style="vertical-align: middle; margin-right: 3px"
+          />消息
+        </template>
+      </Tab>
+      <Tab v-if="!isToken">
+        <template #title>
+          <Icon
+            name="sign"
+            size="20px"
+            style="vertical-align: middle; margin-right: 3px"
+          />登录
+        </template>
         <Login />
       </Tab>
-      <Tab title="我的" v-if="isToken">
+      <Tab v-if="isToken">
+        <template #title>
+          <Icon
+            name="user-o"
+            size="20px"
+            style="vertical-align: middle; margin-right: 3px"
+          />我的
+        </template>
         <profile />
       </Tab>
     </Tabs>
@@ -17,7 +42,9 @@
 </template>
 
 <script>
-import { Tab, Tabs } from 'vant'
+import {
+  Tab, Tabs, Icon,
+} from 'vant'
 import Login from '../components/content/Login.vue';
 import Swiper from '../components/common/Swiper.vue';
 import HomeList from '../components/content/HomeList.vue';
@@ -32,6 +59,7 @@ export default {
     Swiper,
     HomeList,
     Profile,
+    Icon,
   },
   data() {
     return {

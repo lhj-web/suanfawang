@@ -12,7 +12,8 @@ export default new Vuex.Store({
     indexActive: 0,
     sid: '',
     isUser: false,
-    uploader: []
+    uploader: [],
+    userName: ''
   },
   mutations: {
     setActive(state, count) {
@@ -32,6 +33,9 @@ export default new Vuex.Store({
     },
     setUploader(state, object) {
       state.uploader.push(object)
+    },
+    setUserName(state, info) {
+      state.userName = info
     }
   },
   actions: {

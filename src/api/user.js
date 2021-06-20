@@ -1,4 +1,4 @@
-import { request, verifyRequest, jsonRequest } from './request'
+import { request, verifyRequest } from './request'
 
 export function register(data) {
   return request({
@@ -43,5 +43,25 @@ export function changeAvatar(data) {
     url: '/my/avatar',
     method: 'post',
     data
+  })
+}
+
+export function getServiceInfo() {
+  return request({
+    url: '/api/customer/service'
+  })
+}
+
+export function takeOrder(id) {
+  return verifyRequest({
+    url: `/my/receive/${id}`,
+    method: 'post',
+  })
+}
+
+export function cancelOrder(id) {
+  return verifyRequest({
+    url: `/my/receive/${id}`,
+    method: 'delete',
   })
 }

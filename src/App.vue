@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <keep-alive>
+    <keep-alive exclude="ListDetail">
       <router-view />
     </keep-alive>
   </div>

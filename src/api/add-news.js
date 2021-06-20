@@ -1,4 +1,4 @@
-import { uploadRequest, request } from './request'
+import { uploadRequest, request, verifyRequest } from './request'
 
 export function getAuthCode(uuid) {
   return request({
@@ -19,5 +19,12 @@ export function updateRequirement(id, data) {
     url: `/my/notice/${id}`,
     method: 'put',
     data
+  })
+}
+
+export function deleteRequirement(id) {
+  return verifyRequest({
+    url: `/my/notice/${id}`,
+    method: 'delete',
   })
 }

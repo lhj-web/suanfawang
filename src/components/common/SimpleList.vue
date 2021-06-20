@@ -94,7 +94,7 @@ export default {
       if (!value) {
         return '无'
       }
-      return `${value.toFixed(2)}元`
+      return `${value}元`
     }
   }
 };

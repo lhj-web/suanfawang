@@ -55,7 +55,7 @@
           label="内容"
           rows="2"
           type="textarea"
-          maxlength="50"
+          maxlength="200"
           placeholder="请输入需求内容"
           show-word-limit
           size="large"
@@ -65,9 +65,9 @@
         />
         <Field name="price" label="赏金" required>
           <template #input>
-            <Stepper v-model="price" theme="round" :decimal-length="1"
-              input-width="70px" />
-            <span style="margin-left: 5px;font-size: 17px">元</span>
+            <Stepper v-model="price" theme="round" step="10" integer input-width="70px" />
+            <span style="margin-left: 5px;font-size: 17px; margin-right: 10px">元</span>
+            <span style="color: orange">只能为整数</span>
           </template>
         </Field>
         <Field
@@ -83,7 +83,7 @@
         </Field>
         <Field name="cover_img" label="上传图片">
           <template #input>
-            <Uploader v-model="uploader" />
+            <Uploader v-model="uploader" :max-count="1"/>
           </template>
         </Field>
         <div style="margin: 16px 0">
@@ -156,6 +156,8 @@ export default {
       if (vals.cover_img.length > 0) {
         const img = vals.cover_img[0].file
         vals.cover_img = img
+      } else {
+        vals.cover_img = ''
       }
       Object.keys(vals).forEach((key) => {
         data.append(key, vals[key]);
@@ -168,9 +170,12 @@ export default {
           this.$store.commit('setIndexActive')
         } else if (res.status === 403) {
           Notify({ type: 'warning', message: res.data.message })
+        } else if (res.status === 500) {
+          Notify({ type: 'danger', message: '服务器出错了' })
         } else {
           Notify({ type: 'success', message: '发布成功' })
           this.show = false
+          window.location.reload()
         }
       })
     },
