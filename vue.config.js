@@ -14,11 +14,11 @@ module.exports = {
     },
   },
   devServer: {
-    host: '172.21.182.144',
+    host: 'localhost',
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://192.168.254.128:5000',
+        target: 'http://47.98.188.254:8000',
         changeOrigin: true,
         pathRewrite: {
           '/api': '',

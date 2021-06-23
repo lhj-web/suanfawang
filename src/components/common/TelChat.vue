@@ -60,12 +60,6 @@ export default {
   data() {
     return {
       recordContent: [
-        {
-          mineMsg: true, timestamp: new Date().getTime(), headUrl: 'https://img01.yzcdn.cn/vant/leaf.jpg', nickName: 'zhangsan', contactText: '哈哈哈'
-        },
-        {
-          mineMsg: false, timestamp: new Date().getTime(), headUrl: 'https://img01.yzcdn.cn/vant/leaf.jpg', nickName: 'zhangsan', contactText: '哈哈哈'
-        },
       ],
       text: '',
       author_id: '',
@@ -114,14 +108,16 @@ export default {
       }
     },
     message(data) {
-      this.recordContent.push({
-        mineMsg: false,
-        timestamp: data.timestamp,
-        headUrl: this.user_pic,
-        nickname: this.nickname,
-        contactText: data.msg
-      })
-    }
+      if (data.from_id !== localStorage.getItem('id')) {
+        this.recordContent.push({
+          mineMsg: false,
+          timestamp: data.timestamp,
+          headUrl: this.user_pic,
+          nickname: this.nickname,
+          contactText: data.msg
+        })
+      }
+    },
   },
   methods: {
     sendMessage() {
@@ -140,16 +136,16 @@ export default {
     },
     sendOrder() {
       this.$socket.emit('message', {
-        room_id: this.$route.params.id,
-        from_id: localStorage.getItem('id'),
-        to_id: this.author_id,
+        room_id: `${this.$route.params.id}`,
+        from_id: `${localStorage.getItem('id')}`,
+        to_id: `${this.author_id}`,
         msg: `
           标题：${this.title}
           赏金：${this.price}
           发单者：${this.author_name}
         `,
         msg_type: 1,
-        timestamp: new Date().getTime()
+        timestamp: `${new Date().getTime()}`
       })
       this.recordContent.push({
         mineMsg: true,

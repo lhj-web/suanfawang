@@ -337,7 +337,6 @@ export default {
   },
   sockets: {
     connect(data) {
-      console.log('hahah');
     },
     message(data) {
       this.$store.commit('setMessage', data)

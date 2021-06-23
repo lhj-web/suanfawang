@@ -83,7 +83,7 @@
         </Field>
         <Field name="cover_img" label="上传图片">
           <template #input>
-            <Uploader v-model="uploader" :max-count="1"/>
+            <Uploader v-model="uploader" :max-count="1" />
           </template>
         </Field>
         <div style="margin: 16px 0">
@@ -177,6 +177,8 @@ export default {
           this.show = false
           window.location.reload()
         }
+      }).catch(() => {
+        Notify({ type: 'warning', message: '请求超时' })
       })
     },
     changeCode() {

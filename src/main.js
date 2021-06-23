@@ -20,7 +20,7 @@ Vue.use(new VueSocketIO({
 
   debug: true,
 
-  connection: 'http://192.168.254.128:8001',
+  connection: 'http://47.98.188.254:8001',
   options: { query: `token=${token}` }
 }))
 

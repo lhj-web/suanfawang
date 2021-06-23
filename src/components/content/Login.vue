@@ -68,12 +68,14 @@ export default {
       login(values).then((res) => {
         if (res.status === 403) {
           Notify({ type: 'danger', message: res.data.message })
-        } else {
+        } else if (res.status === 0) {
           Notify({ type: 'success', message: '登陆成功' })
           window.localStorage.setItem('token', res.token)
           window.localStorage.setItem('username', values.username)
           window.localStorage.setItem('password', values.password)
           window.location.reload()
+        } else {
+          Notify({ type: 'danger', message: res.data.message })
         }
       }).catch(() => {
         Notify({ type: 'warning', message: '请求超时' })

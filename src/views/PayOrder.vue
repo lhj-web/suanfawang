@@ -4,7 +4,7 @@
     <br/>
     <div class="character">{{message}}</div>
     <br/>
-    <Button type="default" url="https://baidu.com">点击跳转链接</Button>
+    <Button type="default" url="https://baidu.com" v-show="show">点击跳转链接</Button>
   </div>
 </template>
 
@@ -19,17 +19,24 @@ export default {
   },
   data() {
     return {
-      message: '创建付款订单成功，您的付款id为1897321567651，即将跳转至淘宝店铺，付款前联系客服并提供自己的付款id！'
+      message: '',
+      show: false
     };
   },
   mounted() {
-    payOrder(this.$router.params.id,
+    payOrder(this.$route.params.id,
       {
         username: localStorage.getItem('username'),
         spassword: localStorage.getItem('password')
       })
       .then((res) => {
-        this.message = res.data.message
+        if (res.status === 403) {
+          this.message = res.message
+        }
+        if (res.status === 0) {
+          this.message = res.message
+          this.show = true
+        }
       })
   }
 };
