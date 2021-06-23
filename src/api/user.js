@@ -65,3 +65,17 @@ export function cancelOrder(id) {
     method: 'delete',
   })
 }
+
+export function getInfoByid(id) {
+  return verifyRequest({
+    url: `/api/userinfo/${id}`
+  })
+}
+
+export function payOrder(id, data) {
+  return verifyRequest({
+    url: `/my/payorder/${id}`,
+    method: 'post',
+    data
+  })
+}

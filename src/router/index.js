@@ -6,6 +6,7 @@ const EngineList = () => import('../views/EngineList.vue')
 const Help = () => import('../views/Help.vue')
 const ListDetail = () => import('../views/ListDetail.vue')
 const ChatRoom = () => import('../views/ChatRoom.vue')
+const PayOrder = () => import('../views/PayOrder.vue')
 
 Vue.use(VueRouter);
 
@@ -34,6 +35,11 @@ const routes = [
     path: '/chat-room/:id',
     name: 'ChatRoom',
     component: ChatRoom,
+  },
+  {
+    path: '/pay-order/:id',
+    name: 'PayOrder',
+    component: PayOrder
   }
 ];
 

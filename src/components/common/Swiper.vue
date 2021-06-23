@@ -1,11 +1,9 @@
 <template>
   <div class="swiper">
     <Swipe :autoplay="3000" indicator-color="white" class="my-wipe">
-      <SwipeItem>1</SwipeItem>
-      <SwipeItem>2</SwipeItem>
-      <SwipeItem>3</SwipeItem>
-      <SwipeItem>4</SwipeItem>
-      <SwipeItem>5</SwipeItem>
+      <SwipeItem v-for="(item) of arr" :key="item.id">
+        <img :src="item.image" alt style="width: 100%"/>
+      </SwipeItem>
     </Swipe>
   </div>
 </template>
@@ -21,11 +19,13 @@ export default {
     SwipeItem
   },
   data() {
-    return {};
+    return {
+      arr: []
+    };
   },
   mounted() {
     getSwiperImg().then((res) => {
-      console.log(res);
+      this.arr = res.data
     })
   },
 };

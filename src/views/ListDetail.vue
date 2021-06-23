@@ -41,12 +41,8 @@
       <Button plain type="info" size="large" @click="takeOrder" v-show="state===0">立即接单</Button>
       <br />
       <br />
-      <Button
-        plain
-        type="warning"
-        size="large"
-        @click="$router.push(`/chat-room/${id}`)"
-      >聊天</Button>
+      <Button plain
+      type="warning" size="large" @click="enterRoom" v-show="id !== author_id">进入聊天</Button>
     </div>
   </div>
 </template>
@@ -56,7 +52,7 @@ import {
   NavBar, Icon, Image as VanImage, Tag, Button, Notify, ImagePreview
 } from 'vant'
 import { getDetail } from 'api/list-data'
-import { takeOrder, cancelOrder } from 'api/user'
+import { takeOrder, getUserInfo } from 'api/user'
 
 export default {
   name: 'ListDetail',
@@ -76,14 +72,16 @@ export default {
       author_name: '',
       author_picture: '',
       list: [],
-      id: localStorage.getItem('id')
+      id: localStorage.getItem('id'),
+      author_id: '',
     };
   },
   mounted() {
     getDetail(this.$route.params.id).then((res) => {
+      console.log(res);
       const {
         cate_name, price, state, title, view_count,
-        cover_img, content, pub_date, author_name, author_pic
+        cover_img, content, pub_date, author_name, author_pic, author_id, id
       } = res.data
       this.cate_name = cate_name
       this.price = price
@@ -95,7 +93,26 @@ export default {
       this.pub_date = pub_date
       this.author_name = author_name
       this.author_picture = author_pic
+      this.author_id = author_id
+      this.$store.commit('setNoticeId', id)
     })
+  },
+  sockets: {
+    connect(data) {
+      getUserInfo().then((res) => {
+        if (res.status === 401) {
+          Notify({ type: 'danger', message: '请重新登陆' })
+          this.$router.push('/')
+          window.location.reload()
+        } else {
+          console.log(this.author_id);
+          this.$socket.emit('create_room', { token: localStorage.getItem('token').slice(7), deliver_id: this.author_id })
+        }
+      })
+    },
+    message(data) {
+      this.$router.push(`/chat-room/${data.room_id}`)
+    }
   },
   beforeRouteEnter(to, from, next) {
     if (!window.localStorage.getItem('token')) {
@@ -115,16 +132,11 @@ export default {
         }
       })
     },
-    cancelOrder() {
-      cancelOrder(this.$route.params.id).then((res) => {
-        if (!res.status) {
-          Notify({ type: 'success', message: '已取消接单' })
-          this.state = 0
-        }
-      })
-    },
     showImage() {
       ImagePreview([this.cover_img])
+    },
+    enterRoom() {
+      this.$socket.emit('connect')
     }
   }
 };

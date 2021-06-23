@@ -9,11 +9,14 @@ export default new Vuex.Store({
   state: {
     active: 0,
     listName: [],
-    indexActive: 0,
+    indexActive: 2,
     sid: '',
     isUser: false,
     uploader: [],
-    userName: ''
+    userName: '',
+    noticeId: '',
+    message: [],
+    notices: [],
   },
   mutations: {
     setActive(state, count) {
@@ -36,7 +39,16 @@ export default new Vuex.Store({
     },
     setUserName(state, info) {
       state.userName = info
-    }
+    },
+    setNoticeId(state, id) {
+      state.noticeId = id
+    },
+    setMessage(state, message) {
+      state.message.push(message)
+    },
+    setNotices(state, info) {
+      state.notices.push(info)
+    },
   },
   actions: {
     getCateList({ commit }) {

@@ -251,6 +251,8 @@
           <Button round block native-type="submit" type="info">提交修改</Button>
         </div>
       </Form>
+      <Button round block type="primary" @click="payOrder">立即付款</Button>
+      <br />
       <Button round block type="danger" @click="deleteOrder">删除</Button>
     </Popup>
     <Popup v-model="show1" position="bottom">
@@ -333,8 +335,20 @@ export default {
       return `${value}元`
     }
   },
+  sockets: {
+    connect(data) {
+      console.log('hahah');
+    },
+    message(data) {
+      this.$store.commit('setMessage', data)
+    },
+    'receive notify': function (data) { // eslint-disable-line
+      console.log(data);
+      this.$store.commit('setNotices', data)
+    }
+  },
   mounted() {
-    this.$socket.emit('connect', 1)
+    this.$socket.emit('connect')
     getUserInfo()
       .then((res) => {
         if (res.status === 401) {
@@ -367,6 +381,9 @@ export default {
       .then((res) => {
         this.service = res.data
       })
+    this.sockets.subscribe('receive notify', (data) => {
+      console.log(data);
+    })
   },
   methods: {
     onSubmit(vals) {
@@ -482,7 +499,7 @@ export default {
         this.price = res.data.price
         if (res.data.cover_img) {
           this.uploader = []
-          this.uploader.push({ url: res.data.cover_img })
+          this.uploader.push({ url: res.data.cover_img, isImage: true })
         }
         this.item = res.data
         this.id = id
@@ -508,7 +525,7 @@ export default {
           Notify({ type: 'success', message: '更新成功' })
           this.show = false
         } else {
-          Notify({ type: 'danger', message: '更新失败' })
+          Notify({ type: 'danger', message: res.data.message })
         }
       }).catch(() => {
         Notify({ type: 'warning', message: '请求超时' })
@@ -539,6 +556,9 @@ export default {
           this.show1 = false
         }
       })
+    },
+    payOrder() {
+      this.$router.push(`/pay-order/${this.id}`)
     }
   }
 };

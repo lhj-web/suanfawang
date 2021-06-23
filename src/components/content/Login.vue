@@ -71,6 +71,8 @@ export default {
         } else {
           Notify({ type: 'success', message: '登陆成功' })
           window.localStorage.setItem('token', res.token)
+          window.localStorage.setItem('username', values.username)
+          window.localStorage.setItem('password', values.password)
           window.location.reload()
         }
       }).catch(() => {

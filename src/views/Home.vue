@@ -8,7 +8,7 @@
         </template>
         <HomeList />
       </Tab>
-      <Tab badge="1">
+      <Tab :dot="isDot">
         <template #title>
           <Icon
             name="chat-o"
@@ -16,6 +16,7 @@
             style="vertical-align: middle; margin-right: 3px"
           />消息
         </template>
+        <News />
       </Tab>
       <Tab v-if="!isToken">
         <template #title>
@@ -49,6 +50,7 @@ import Login from '../components/content/Login.vue';
 import Swiper from '../components/common/Swiper.vue';
 import HomeList from '../components/content/HomeList.vue';
 import Profile from '../components/content/Profile.vue';
+import News from './News.vue';
 
 export default {
   name: 'Home',
@@ -60,12 +62,18 @@ export default {
     HomeList,
     Profile,
     Icon,
+    News,
   },
   data() {
     return {
       isToken: !!window.localStorage.getItem('token'),
+      isDot: false
     }
   },
-
+  mounted() {
+    if (this.$store.state.message.length > 0 || this.$store.state.notices.length > 0) {
+      this.isDot = true
+    }
+  }
 };
 </script>

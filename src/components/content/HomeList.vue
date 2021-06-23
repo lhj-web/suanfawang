@@ -20,7 +20,7 @@
 
 <script>
 import {
-  Collapse, CollapseItem, Cell, Notify
+  Collapse, CollapseItem, Cell
 } from 'vant'
 
 export default {
@@ -40,15 +40,7 @@ export default {
       this.$store.commit('setActive', index);
     }
   },
-  sockets: {
-    connect() {
-      console.log('连接成功');
-    }
-  },
   mounted() {
-    if (localStorage.getItem('token')) {
-      this.$socket.emit('connect', { query: localStorage.getItem('token').slice(7) })
-    }
     this.$store.dispatch('getCateList')
   },
 };

@@ -1,37 +1,32 @@
 <template>
-  <div class="chat-room">
-    <NavBar
-      title="聊天内容"
-      left-text="返回"
-      left-arrow
-      @click-left="$router.go(-1)"
-      @click-right="$router.push('/')"
-    >
-      <template #right>
-        <Icon name="wap-home-o" size="20" />
-      </template>
-    </NavBar>
+  <div>
+    <user-chat v-if="!isUser" />
+    <tel-chat v-else />
   </div>
 </template>
 
 <script>
-import { NavBar, Icon } from 'vant'
+import TelChat from '../components/common/TelChat.vue';
+import UserChat from '../components/common/UserChat.vue';
 
 export default {
   name: 'ChatRoom',
   components: {
-    NavBar,
-    Icon,
+    UserChat,
+    TelChat
   },
   data() {
-    return {};
+    return {
+      isUser: true
+    }
   },
-  mounted() {
-    this.$socket.emit('create_room', { token: localStorage.getItem('token').slice(7), deliver_id: '' })
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      if (from.path === '/') {
+        vm.isUser = false
+      }
+    })
   },
-  sockets: {
-
-  }
 };
 </script>
 
