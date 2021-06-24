@@ -336,18 +336,14 @@ export default {
     }
   },
   sockets: {
-    connect(data) {
-    },
     message(data) {
       this.$store.commit('setMessage', data)
     },
     'receive notify': function (data) { // eslint-disable-line
-      console.log(data);
       this.$store.commit('setNotices', data)
     }
   },
   mounted() {
-    this.$socket.emit('connect')
     getUserInfo()
       .then((res) => {
         if (res.status === 401) {
@@ -380,9 +376,6 @@ export default {
       .then((res) => {
         this.service = res.data
       })
-    this.sockets.subscribe('receive notify', (data) => {
-      console.log(data);
-    })
   },
   methods: {
     onSubmit(vals) {
@@ -429,6 +422,7 @@ export default {
     },
     exit() {
       window.localStorage.removeItem('token')
+      window.localStorage.removeItem('avatar')
       window.location.reload()
     },
     onLoad() {

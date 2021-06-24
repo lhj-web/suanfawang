@@ -2,7 +2,7 @@
   <div class="swiper">
     <Swipe :autoplay="3000" indicator-color="white" class="my-wipe">
       <SwipeItem v-for="(item) of arr" :key="item.id">
-        <img :src="item.image" alt style="width: 100%"/>
+        <img :src="item.image" alt />
       </SwipeItem>
     </Swipe>
   </div>
@@ -20,12 +20,14 @@ export default {
   },
   data() {
     return {
-      arr: []
+      arr: [{ id: '1', image: 'https://img01.yzcdn.cn/vant/apple-1.jpg' }, { id: '2', image: 'https://img01.yzcdn.cn/vant/apple-2.jpg' }]
     };
   },
   mounted() {
     getSwiperImg().then((res) => {
-      this.arr = res.data
+      if (res.data.length > 0) {
+        this.arr = res.data
+      }
     })
   },
 };
@@ -35,9 +37,10 @@ export default {
 .swiper
   .my-wipe
     .van-swipe-item
-      color #fff
-      font-size 20px
-      line-height 150px
-      text-align center
-      background-color #39a9ed
+      width 100%
+      height 200px
+      img
+        max-height 200px
+        max-width 100%
+        width 100%
 </style>

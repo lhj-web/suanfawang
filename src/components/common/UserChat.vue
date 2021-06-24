@@ -70,7 +70,8 @@ export default {
   },
   sockets: {
     connect() {
-      getInfoByid(this.$store.state.message[0].from_id).then((res) => {
+      const message = this.$store.state.message.filter((item) => item.from_id !== localStorage.getItem('id'))
+      getInfoByid(message[0].from_id).then((res) => {
         const { user_pic, nickname } = res.data
         this.nickname = nickname
         this.user_pic = user_pic
@@ -96,13 +97,15 @@ export default {
       })
     },
     message(data) {
-      this.recordContent.push({
-        mineMsg: false,
-        timestamp: data.timestamp,
-        headUrl: this.user_pic,
-        nickName: this.nickname,
-        contactText: data.msg
-      })
+      if (data.from_id !== localStorage.getItem('id')) {
+        this.recordContent.push({
+          mineMsg: false,
+          timestamp: data.timestamp,
+          headUrl: this.user_pic,
+          nickName: this.nickname,
+          contactText: data.msg
+        })
+      }
     }
   },
   methods: {
@@ -110,7 +113,7 @@ export default {
       this.$socket.emit('message', {
         room_id: this.$route.params.id,
         from_id: localStorage.getItem('id'),
-        to_id: this.$store.state.message.from_id,
+        to_id: this.$store.state.message[0].from_id,
         msg: this.text,
         msg_type: 0,
         timestamp: new Date().getTime()

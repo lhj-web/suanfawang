@@ -4,7 +4,7 @@
     <br/>
     <div class="character">{{message}}</div>
     <br/>
-    <Button type="default" url="https://baidu.com" v-show="show">点击跳转链接</Button>
+    <Button type="default" url="https://market.m.taobao.com/apps/market/shop/simpleshop.html?wh_weex=true&shopId=148491159&sellerId=1932681319&spm=a2141.7631565.backup.0&_inNestedEmbed=true&inWeexShop=true&ignoreShopHeadEvent=false&weexShopTransparentBG=true&_page_inside_embed_=true&_page_home_isweex_=true&useIframeInWeb=false" v-show="show">点击跳转链接</Button>
   </div>
 </template>
 
