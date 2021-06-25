@@ -113,7 +113,6 @@ export default {
           this.$emit('success')
         }
       }).catch((err) => {
-        console.log(err);
         Notify({ type: 'warning', message: '请求超时' })
       })
     },

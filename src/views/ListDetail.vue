@@ -78,7 +78,6 @@ export default {
   },
   mounted() {
     getDetail(this.$route.params.id).then((res) => {
-      console.log(res);
       const {
         cate_name, price, state, title, view_count,
         cover_img, content, pub_date, author_name, author_pic, author_id, id
@@ -98,18 +97,6 @@ export default {
     })
   },
   sockets: {
-    connect(data) {
-      getUserInfo().then((res) => {
-        if (res.status === 401) {
-          Notify({ type: 'danger', message: '请重新登陆' })
-          this.$router.push('/')
-          window.location.reload()
-        } else {
-          console.log(this.author_id);
-          this.$socket.emit('create_room', { token: localStorage.getItem('token').slice(7), deliver_id: this.author_id })
-        }
-      })
-    },
     message(data) {
       this.$router.push(`/chat-room/${data.room_id}`)
     }
@@ -136,7 +123,7 @@ export default {
       ImagePreview([this.cover_img])
     },
     enterRoom() {
-      this.$socket.emit('connect')
+      this.$socket.emit('create_room', { token: localStorage.getItem('token').slice(7), deliver_id: this.author_id })
     }
   }
 };

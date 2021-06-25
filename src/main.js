@@ -17,9 +17,6 @@ if (localStorage.getItem('token')) {
 }
 
 Vue.use(new VueSocketIO({
-
-  debug: true,
-
   connection: 'http://47.98.188.254:8001',
   options: { query: `token=${token}` }
 }))

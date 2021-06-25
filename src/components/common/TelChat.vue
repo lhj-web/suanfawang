@@ -71,40 +71,39 @@ export default {
   },
   mounted() {
     this.$socket.emit('connect')
-
-    getDetail(this.$store.state.noticeId).then((res) => {
-      const {
-        author_id, title, price, author_name, author_pic
-      } = res.data
-      this.author_id = author_id
-      this.title = title
-      this.price = price
-      this.author_name = author_name
-      this.author_pic = author_pic
-    })
   },
   sockets: {
     connect() {
       if (this.$store.state.message.length > 0) {
-        const arr = this.$store.state.message.map((item) => {
-          if (item.from_id === localStorage.getItem('id')) {
+        getDetail(this.$store.state.noticeId).then((res) => {
+          const {
+            author_id, title, price, author_name, author_pic
+          } = res.data
+          this.author_id = author_id
+          this.title = title
+          this.price = price
+          this.author_name = author_name
+          this.author_pic = author_pic
+          const arr = this.$store.state.message.map((item) => {
+            if (item.from_id === localStorage.getItem('id')) {
+              return ({
+                mineMsg: true,
+                timestamp: item.timestamp,
+                headUrl: localStorage.getItem('avatar'),
+                nickName: localStorage.getItem('nickname'),
+                contactText: item.msg
+              })
+            }
             return ({
-              mineMsg: true,
+              mineMsg: false,
               timestamp: item.timestamp,
-              headUrl: localStorage.getItem('avatar'),
-              nickName: localStorage.getItem('nickname'),
+              headUrl: this.author_pic,
+              nickName: this.author_name,
               contactText: item.msg
             })
-          }
-          return ({
-            mineMsg: false,
-            timestamp: item.timestamp,
-            headUrl: this.author_pic,
-            nickName: this.author_name,
-            contactText: item.msg
           })
+          this.recordContent.push(...arr)
         })
-        this.recordContent.push(...arr)
       }
     },
     message(data) {

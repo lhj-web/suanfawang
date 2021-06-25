@@ -13,10 +13,7 @@ export function request(config) {
       req.data = qs.stringify(req.data);
       return req;
     },
-    (err) => {
-      console.log(err);
-      return err;
-    }
+    (err) => err
   );
 
   instance.interceptors.response.use(
@@ -46,10 +43,7 @@ export function verifyRequest(config) {
       }
       return req
     },
-    (err) => {
-      console.log(err);
-      return err.response;
-    }
+    (err) => err.response
   );
 
   instance.interceptors.response.use(
@@ -58,7 +52,6 @@ export function verifyRequest(config) {
       if (err.response.status === 401) {
         localStorage.removeItem('token')
       }
-      console.log(err.response);
       return err.response
     }
   )
@@ -78,18 +71,12 @@ export function jsonRequest(config) {
       req.data = qs.stringify(req.data);
       return req;
     },
-    (err) => {
-      console.log(err);
-      return err;
-    }
+    (err) => err
   );
 
   instance.interceptors.response.use(
     (res) => res.data,
-    (err) => {
-      console.log(err);
-      return err
-    }
+    (err) => err
   );
 
   return instance(config);
@@ -110,18 +97,12 @@ export function uploadRequest(config) {
       }
       return req
     },
-    (err) => {
-      console.log(err);
-      return err.response;
-    }
+    (err) => err.response
   );
 
   instance.interceptors.response.use(
     (res) => res.data,
-    (err) => {
-      console.log(err.response);
-      return err.response
-    }
+    (err) => err.response
   );
 
   return instance(config)

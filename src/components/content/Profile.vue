@@ -189,7 +189,7 @@
         </Form>
       </CollapseItem>
       <collapse-item name="3" title="联系客服" icon="phone-o">
-        <Cell v-for="(key, value) in service" :key="key" :title="value" :value="key" />
+        <Cell v-for="(key, value) in title" :key="key" :title="value" :value="key" />
       </collapse-item>
     </Collapse>
     <Popup v-model="show" position="bottom" closeable get-container="#app">
@@ -323,8 +323,8 @@ export default {
       price: 0,
       id: '',
       state: '',
-      service: {},
-      show1: false
+      show1: false,
+      title: { qq: '', 微信: '', 公众号: '' }
     };
   },
   filters: {
@@ -375,6 +375,9 @@ export default {
     getServiceInfo()
       .then((res) => {
         this.service = res.data
+        this.title.qq = res.data.QQ
+        this.title.微信 = res.data.weixin
+        this.title.公众号 = res.data.gongzhonghao
       })
   },
   methods: {
