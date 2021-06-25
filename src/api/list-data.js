@@ -42,3 +42,10 @@ export function getMyList1(pagenum) {
     }
   })
 }
+
+export function visitStatistics(id) {
+  return request({
+    url: `/detail/visit/${id}`,
+    method: 'post',
+  })
+}

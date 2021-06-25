@@ -75,23 +75,25 @@ export default {
         const { user_pic, nickname } = res.data
         this.nickname = nickname
         this.user_pic = user_pic
-        const arr = this.$store.state.message.map((item) => {
-          if (item.from_id === localStorage.getItem('id')) {
+        const arr = this.$store.state.message.map((item) => { // eslint-disable-line
+          if (this.$route.params.id === item.room_id) {
+            if (item.from_id === localStorage.getItem('id')) {
+              return ({
+                mineMsg: true,
+                timestamp: item.timestamp,
+                headUrl: localStorage.getItem('avatar'),
+                nickName: localStorage.getItem('nickname'),
+                contactText: item.msg
+              })
+            }
             return ({
-              mineMsg: true,
+              mineMsg: false,
               timestamp: item.timestamp,
-              headUrl: localStorage.getItem('avatar'),
-              nickName: localStorage.getItem('nickname'),
+              headUrl: this.user_pic,
+              nickName: this.nickname,
               contactText: item.msg
             })
           }
-          return ({
-            mineMsg: false,
-            timestamp: item.timestamp,
-            headUrl: this.user_pic,
-            nickName: this.nickname,
-            contactText: item.msg
-          })
         })
         this.recordContent.push(...arr)
       })

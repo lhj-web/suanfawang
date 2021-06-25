@@ -41,6 +41,7 @@
 import {
   Collapse, CollapseItem, List, Card, Tag, Icon, Notify
 } from 'vant';
+import { visitStatistics } from 'api/list-data'
 
 export default {
   name: 'SimpleList',
@@ -66,6 +67,9 @@ export default {
       type: Number,
       required: true
     }
+  },
+  mounted() {
+    visitStatistics(this.$props.id)
   },
   methods: {
     onLoad() {

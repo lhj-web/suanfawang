@@ -84,23 +84,25 @@ export default {
           this.price = price
           this.author_name = author_name
           this.author_pic = author_pic
-          const arr = this.$store.state.message.map((item) => {
-            if (item.from_id === localStorage.getItem('id')) {
+          const arr = this.$store.state.message.map((item) => { // eslint-disable-line
+            if (item.room_id === this.$route.params.id) {
+              if (item.from_id === localStorage.getItem('id')) {
+                return ({
+                  mineMsg: true,
+                  timestamp: item.timestamp,
+                  headUrl: localStorage.getItem('avatar'),
+                  nickName: localStorage.getItem('nickname'),
+                  contactText: item.msg
+                })
+              }
               return ({
-                mineMsg: true,
+                mineMsg: false,
                 timestamp: item.timestamp,
-                headUrl: localStorage.getItem('avatar'),
-                nickName: localStorage.getItem('nickname'),
+                headUrl: this.author_pic,
+                nickName: this.author_name,
                 contactText: item.msg
               })
             }
-            return ({
-              mineMsg: false,
-              timestamp: item.timestamp,
-              headUrl: this.author_pic,
-              nickName: this.author_name,
-              contactText: item.msg
-            })
           })
           this.recordContent.push(...arr)
         })

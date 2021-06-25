@@ -4,8 +4,8 @@
       <br />
       <h2 style="text-align: center; font-weight: normal;">消息通知</h2>
       <Cell
-        :value="item.msg"
-        v-for="(item, index) of $store.state.message"
+        :value="item[item.length - 1].msg"
+        v-for="(item, index) of news"
         :key="index"
         @click="$router.push(`/chat-room/${item.room_id}`)"
         v-show="item.from_id !== id"
@@ -38,10 +38,26 @@ export default {
   },
   data() {
     return {
-      id: localStorage.getItem('id')
+      id: localStorage.getItem('id'),
+      news: []
     };
   },
   mounted() {
+    const obj = {}
+    this.$store.state.message.forEach((item) => {
+      if (!obj[item.room_id]) {
+        const arr = []
+        arr.push(item)
+        this.news.push(arr)
+        obj[item.roo_id] = item
+      } else {
+        this.news.forEach(((value) => {
+          if (value[0].room_id === item.room_id) {
+            value.push(item)
+          }
+        }))
+      }
+    })
   },
   methods: {
   }
