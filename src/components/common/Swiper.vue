@@ -11,6 +11,11 @@
 <script>
 import { Swipe, SwipeItem } from 'vant'
 import { getSwiperImg } from 'api/swiper'
+import swiper1 from 'assets/img/1.png'
+import swiper2 from 'assets/img/2.png'
+import swiper3 from 'assets/img/3.png'
+import swiper4 from 'assets/img/4.png'
+import swiper5 from 'assets/img/5.png'
 
 export default {
   name: 'Swiper',
@@ -20,7 +25,7 @@ export default {
   },
   data() {
     return {
-      arr: [{ id: '1', image: 'https://img01.yzcdn.cn/vant/apple-1.jpg' }, { id: '2', image: 'https://img01.yzcdn.cn/vant/apple-2.jpg' }]
+      arr: [{ id: '1', image: swiper1 }, { id: '2', image: swiper2 }, { id: '3', image: swiper3 }, { id: '4', image: swiper4 }, { id: 5, image: swiper5 }]
     };
   },
   mounted() {

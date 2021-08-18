@@ -11,27 +11,33 @@
         <Icon name="wap-home-o" size="20" />
       </template>
     </NavBar>
-    <div class="chat-content">
-      <!-- recordContent 聊天记录数组-->
-      <div v-for="(itemc,indexc) in recordContent" :key="indexc">
-        <!-- 对方 -->
-        <div class="word" v-if="!itemc.mineMsg">
-          <img :src="itemc.headUrl" />
-          <div class="info">
-            <p class="time">{{itemc.nickName}} {{$moment(itemc.timestamp).fromNow()}}</p>
-            <div class="info-content">{{itemc.contactText}}</div>
+    <NoticeBar left-icon="volume-o" text="规则须知：后台会审查聊天记录，请勿进行私下交易" />
+    <pull-refresh v-model="isLoading" @refresh="onRefresh" success-text="刷新成功" :disabled="!isLoad">
+      <div class="chat-content">
+        <!-- recordContent 聊天记录数组-->
+        <div v-for="(itemc,indexc) in recordContent" :key="indexc">
+          <!-- 对方 -->
+          <div class="word" v-if="!itemc.mineMsg">
+            <img :src="itemc.headUrl" />
+            <div class="info">
+              <p class="time">{{itemc.nickName}} {{$moment(itemc.timestamp).fromNow()}}</p>
+              <div class="info-content">{{itemc.contactText}}</div>
+            </div>
           </div>
-        </div>
-        <!-- 我的 -->
-        <div class="word-my" v-else>
-          <div class="info">
-            <p class="time">{{itemc.nickName}} {{$moment(itemc.timestamp).fromNow()}}</p>
-            <div class="info-content">{{itemc.contactText}}</div>
+          <!-- 我的 -->
+          <div class="word-my" v-else>
+            <div class="info">
+              <p class="time">{{itemc.nickName}} {{$moment(itemc.timestamp).fromNow()}}</p>
+              <div class="info-content">{{itemc.contactText}}</div>
+            </div>
+            <div>
+            <img :src="itemc.headUrl" />
+            <p style="margin-top: 5px; margin-left: 7px">{{itemc.is_read}}</p>
+            </div>
           </div>
-          <img :src="itemc.headUrl" />
         </div>
       </div>
-    </div>
+    </pull-refresh>
     <div class="input">
       <Field v-model="text" label="输入框" placeholder="说点什么吧~" left-icon="edit">
         <template #button>
@@ -44,7 +50,7 @@
 
 <script>
 import {
-  NavBar, Icon, Field, Button
+  NavBar, Icon, Field, Button, NoticeBar, PullRefresh
 } from 'vant'
 import { getInfoByid } from 'api/user'
 
@@ -54,49 +60,71 @@ export default {
     NavBar,
     Icon,
     Field,
-    Button
+    Button,
+    NoticeBar,
+    PullRefresh
   },
   data() {
     return {
-      recordContent: [
-      ],
+      recordContent: [],
       text: '',
       nickname: '',
-      user_pic: ''
+      user_pic: '',
+      isLoading: false,
+      isLoad: true
     };
   },
   mounted() {
     this.$socket.emit('connect')
+    this.$socket.emit('read_msg', { token: localStorage.getItem('token').slice(7), room_id: this.$route.params.id })
   },
   sockets: {
     connect() {
       const message = this.$store.state.message.filter((item) => item.from_id !== localStorage.getItem('id'))
-      getInfoByid(message[0].from_id).then((res) => {
-        const { user_pic, nickname } = res.data
-        this.nickname = nickname
-        this.user_pic = user_pic
+      if (message.length < 1) {
         const arr = this.$store.state.message.map((item) => { // eslint-disable-line
           if (this.$route.params.id === item.room_id) {
-            if (item.from_id === localStorage.getItem('id')) {
-              return ({
-                mineMsg: true,
-                timestamp: item.timestamp,
-                headUrl: localStorage.getItem('avatar'),
-                nickName: localStorage.getItem('nickname'),
-                contactText: item.msg
-              })
-            }
             return ({
-              mineMsg: false,
+              mineMsg: true,
               timestamp: item.timestamp,
-              headUrl: this.user_pic,
-              nickName: this.nickname,
-              contactText: item.msg
+              headUrl: localStorage.getItem('avatar'),
+              nickName: localStorage.getItem('nickname'),
+              contactText: item.msg,
+              is_read: item.is_read ? '已读' : '未读'
             })
           }
         })
-        this.recordContent.push(...arr)
-      })
+        const arr1 = arr.filter((item) => item !== undefined)
+        this.recordContent.push(...arr1)
+      } else {
+        getInfoByid(message[0].from_id).then((res) => {
+          const { user_pic, nickname } = res.data
+          this.nickname = nickname
+          this.user_pic = user_pic
+          const arr = this.$store.state.message.map((item) => { // eslint-disable-line
+            if (this.$route.params.id === item.room_id) {
+              if (item.from_id === localStorage.getItem('id')) {
+                return ({
+                  mineMsg: true,
+                  timestamp: item.timestamp,
+                  headUrl: localStorage.getItem('avatar'),
+                  nickName: localStorage.getItem('nickname'),
+                  contactText: item.msg,
+                  is_read: item.is_read ? '已读' : '未读'
+                })
+              }
+              return ({
+                mineMsg: false,
+                timestamp: item.timestamp,
+                headUrl: this.user_pic,
+                nickName: this.nickname,
+                contactText: item.msg
+              })
+            }
+          })
+          this.recordContent.push(...arr)
+        })
+      }
     },
     message(data) {
       if (data.from_id !== localStorage.getItem('id')) {
@@ -107,6 +135,25 @@ export default {
           nickName: this.nickname,
           contactText: data.msg
         })
+      } else {
+        this.recordContent.push({
+          mineMsg: true, timestamp: data.timestamp, headUrl: localStorage.getItem('avatar'), nickName: localStorage.getItem('nickname'), contactText: data.msg, is_read: data.is_read ? '已读' : '未读'
+        })
+      }
+    },
+    'more_message': function(data) { // eslint-disable-line
+      if (data.from_id !== localStorage.getItem('id')) {
+        this.recordContent.unshift({
+          mineMsg: false,
+          timestamp: data.timestamp,
+          headUrl: this.user_pic,
+          nickName: this.nickname,
+          contactText: data.msg
+        })
+      } else {
+        this.recordContent.unshift({
+          mineMsg: true, timestamp: data.timestamp, headUrl: localStorage.getItem('avatar'), nickname: localStorage.getItem('nickname'), contactText: data.msg
+        })
       }
     }
   },
@@ -115,16 +162,18 @@ export default {
       this.$socket.emit('message', {
         room_id: this.$route.params.id,
         from_id: localStorage.getItem('id'),
-        to_id: this.$store.state.message[0].from_id,
+        to_id: this.$store.state.message[0].from_id === localStorage.getItem('id') ? this.$store.state.message[0].to_id : this.$store.state.message[0].from_id,
         msg: this.text,
         msg_type: 0,
         timestamp: new Date().getTime()
       })
-      this.recordContent.push({
-        mineMsg: true, timestamp: new Date().getTime(), headUrl: localStorage.getItem('avatar'), nickName: localStorage.getItem('nickname'), contactText: this.text
-      })
       this.text = ''
     },
+    onRefresh() {
+      this.$socket.emit('more_message', { token: localStorage.getItem('token').slice(7), room_id: this.$route.params.id })
+      this.isLoading = false
+      this.isLoad = false
+    }
   }
 };
 </script>
@@ -132,6 +181,7 @@ export default {
 <style lang="stylus" scoped>
 .chat-content
   padding 20px
+  // height 500px
   .word
     display flex
     margin-bottom 20px

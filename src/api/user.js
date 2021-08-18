@@ -1,4 +1,4 @@
-import { request, verifyRequest } from './request'
+import { request, verifyRequest, jsonRequest } from './request'
 
 export function register(data) {
   return request({
@@ -77,5 +77,66 @@ export function payOrder(id, data) {
     url: `/my/payorder/${id}`,
     method: 'post',
     data
+  })
+}
+
+export function popularization() {
+  return verifyRequest({
+    url: '/my/popularization',
+  })
+}
+
+export function getTechnician() {
+  return request({
+    url: '/api/rank'
+  })
+}
+
+export function userFeedback(data) {
+  return jsonRequest({
+    url: '/my/feedback',
+    method: 'post',
+    data,
+  })
+}
+
+export function getUserProfile(id) {
+  return verifyRequest({
+    url: `/api/userindex/${id}`,
+  })
+}
+
+export function getFeedback() {
+  return request({
+    url: '/api/feedbacklist',
+  })
+}
+
+export function getMyComment(id) {
+  return verifyRequest({
+    url: '/my/comment',
+    params: {
+      payorder_id: id,
+    }
+  })
+}
+
+export function publishComment(data) {
+  return verifyRequest({
+    url: '/my/comment',
+    method: 'post',
+    data,
+  })
+}
+
+export function getPayOrders() {
+  return verifyRequest({
+    url: '/my/payorders',
+  })
+}
+
+export function getMyComments() {
+  return verifyRequest({
+    url: '/my/comments'
   })
 }

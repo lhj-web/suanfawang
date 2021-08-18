@@ -69,7 +69,6 @@ export default {
     }
   },
   mounted() {
-    visitStatistics(this.$props.id)
   },
   methods: {
     onLoad() {
@@ -90,6 +89,8 @@ export default {
         })
     },
     openDetail(id) {
+      visitStatistics(this.$props.id).then((res) => {
+      })
       this.$router.push(`/list-detail/${id}`)
     },
   },

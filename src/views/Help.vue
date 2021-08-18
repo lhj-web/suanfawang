@@ -5,10 +5,11 @@
     <Collapse v-model="activeName" accordion>
       <CollapseItem
         v-for="(item, index) in list"
-        :key="index"
-        :title="item"
+        :key="item.id"
+        :title="item.name"
         :name="index"
-      >hello world</CollapseItem>
+        @click.native="getHelp(item.id)"
+      >{{helpInfo.content}}</CollapseItem>
     </Collapse>
     <!-- eslint-disable -->
   </div>
@@ -18,6 +19,7 @@
 import {
   NavBar, Collapse, CollapseItem
 } from 'vant'
+import { getHelpCateList, getHelpDetail } from 'api/list-data'
 
 export default {
   name: 'Help',
@@ -26,11 +28,22 @@ export default {
   },
   data() {
     return {
-      list: ['不会发布？', '怎么删除？', '我发布的去哪？', '查看不了电话号码？', '验证不了电话号码？'],
+      list: [],
       activeName: '1',
+      helpInfo: {}
     };
   },
+  mounted() {
+    getHelpCateList().then((res) => {
+      this.list = res.data
+    })
+  },
   methods: {
+    getHelp(id) {
+      getHelpDetail(id).then((res) => {
+        this.helpInfo = res.data
+      })
+    }
   }
 };
 </script>

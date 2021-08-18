@@ -51,6 +51,7 @@ export function verifyRequest(config) {
     (err) => {
       if (err.response.status === 401) {
         localStorage.removeItem('token')
+        window.location.href = '/'
       }
       return err.response
     }
@@ -68,7 +69,8 @@ export function jsonRequest(config) {
 
   instance.interceptors.request.use(
     (req) => {
-      req.data = qs.stringify(req.data);
+      const token = window.localStorage.getItem('token')
+      req.headers.Authorization = token;
       return req;
     },
     (err) => err
@@ -76,7 +78,7 @@ export function jsonRequest(config) {
 
   instance.interceptors.response.use(
     (res) => res.data,
-    (err) => err
+    (err) => err.response
   );
 
   return instance(config);

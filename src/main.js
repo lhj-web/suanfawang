@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import moment from 'moment';
 import VueSocketIO from 'vue-socket.io';
+import VueQriously from 'vue-qriously'
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -16,7 +17,9 @@ if (localStorage.getItem('token')) {
   token = localStorage.getItem('token').slice(7)
 }
 
+Vue.use(VueQriously)
 Vue.use(new VueSocketIO({
+  // debug: true,
   connection: 'http://47.98.188.254:8001',
   options: { query: `token=${token}` }
 }))

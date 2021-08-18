@@ -49,3 +49,18 @@ export function visitStatistics(id) {
     method: 'post',
   })
 }
+
+export function getHelpCateList() {
+  return request({
+    url: '/api/helpcategorys'
+  })
+}
+
+export function getHelpDetail(id) {
+  return request({
+    url: '/api/help',
+    params: {
+      cate_id: id
+    }
+  })
+}

@@ -59,7 +59,7 @@
             placeholder="微信号"
             :rules="[{ required: true, message: '请填写微信号' }]"
           />
-          <Field name="user_type" label="单选框">
+          <Field name="user_type" label="单选框" v-show="false">
             <template #input>
               <RadioGroup v-model="radio" direction="horizontal">
                 <Radio :name="0">普通用户</Radio>
@@ -67,6 +67,22 @@
               </RadioGroup>
             </template>
           </Field>
+          <Field
+            v-model="description"
+            name="description"
+            label="描述"
+            placeholder="请用一段话来描述自己"
+            :rules="[{ required: true }]"
+            v-show="radio === 0"
+          />
+          <Field
+            v-model="description"
+            name="description"
+            label="技能展示"
+            placeholder="请介绍自己擅长的技术或方向"
+            :rules="[{ required: true }]"
+            v-show="radio === 1"
+          />
           <div style="margin: 16px 0">
             <Button round block native-type="submit" type="info">提交</Button>
           </div>
@@ -89,8 +105,10 @@
               <span style="color: #6D6875">{{ $moment(item.pub_date).fromNow() }}</span>
             </template>
             <template #footer>
-              <Tag plain type="danger" v-show="item.state">已被接单</Tag>
-              <Tag plain type="primary" v-show="!item.state">未接单</Tag>
+              <Tag plain type="danger" v-show="item.state === 1">已被接单</Tag>
+              <Tag plain type="primary" v-show="item.state === 0">未接单</Tag>
+              <Tag plain type="warning" v-show="item.state === 2">已付款</Tag>
+              <Tag plain type="success" v-show="item.state === 3">已完成</Tag>
               <Icon name="eye-o" style="margin: 0 3px 0 10px;vertical-align: middle" size="16" />
               <span style="vertical-align: middle;color: #6D6875">{{item.view_count}}</span>
             </template>
@@ -112,7 +130,7 @@
           </template>
         </List>
       </collapse-item>
-      <collapse-item name="1" title="已接的订单" icon="comment-o" v-show="$store.state.isUser">
+      <collapse-item name="2" title="已接的订单" icon="comment-o" v-show="$store.state.isUser">
         <List
           v-model="loading"
           :finished="finished"
@@ -129,8 +147,6 @@
               <span style="color: #6D6875">接单时间：{{ $moment(item.pub_date).fromNow() }}</span>
             </template>
             <template #footer>
-              <Tag plain type="danger" v-show="item.state">已被接单</Tag>
-              <Tag plain type="primary" v-show="!item.state">未接单</Tag>
               <Icon name="eye-o" style="margin: 0 3px 0 10px;vertical-align: middle" size="16" />
               <span style="vertical-align: middle;color: #6D6875">{{item.view_count}}</span>
             </template>
@@ -152,7 +168,54 @@
           </template>
         </List>
       </collapse-item>
-      <CollapseItem name="2" title="修改密码" icon="closed-eye">
+      <collapse-item name="3" title="我的消息" icon="chat-o">
+        <news :system="system" :count="msgCount"/>
+      </collapse-item>
+      <collapse-item name="4" title="付款信息与评价" icon="balance-list-o">
+        <Card v-for="item in payInfo" :key="item.id" @click="showPop(item.id, item.is_commented)">
+            <template #title>
+              <h2 style="color: #011627;font-size: 19px">订单id：{{item.id}}</h2>
+            </template>
+            <template #tags>
+              单子标题：{{item.target}}&nbsp;
+              技术员：{{item.receiver}}
+            </template>
+            <template #footer>
+              <Tag plain type="primary" v-show="item.status === 1">已付款</Tag>
+              <Tag plain type="warning" v-show="item.status === 0">未付款</Tag>
+              <Tag plain type="success" v-show="item.status === 2">已收货</Tag>
+              <Tag plain type="danger" v-show="item.status === 3">已取消</Tag>&nbsp;
+              <Tag plain type="warning" v-show="item.is_commented">已评价</Tag>
+              <Tag plain type="warning" v-show="!item.is_commented">未评论</Tag>
+            </template>
+            <template #price>
+              <Tag plain type="warning" size="large">赏金</Tag>
+              <span
+                style="margin-left: 8px;font-size: 15px;color: #FF6B6B"
+              >{{ item.price | formatPrice }}</span>
+            </template>
+          </Card>
+      </collapse-item>
+      <collapse-item name="5" title="我的评价" icon="more-o">
+        <CellGroup v-for="item of comments" :key="item.id">
+          <Cell title="单子标题" :value="item.target"/>
+          <Cell title="发单者" :value="item.deliver" v-show="item.deliver"/>
+          <Cell title="接单者" :value="item.recevier" v-show="item.receiver"/>
+          <Cell title="评价" :value="item.evaluate" />
+          <Cell title="评论" :value="item.comment"/>
+          <Cell title="星评">
+            <template #right-icon>
+                    <Rate v-model="item.score"
+                        :size="25"
+                        color="#ffd21e"
+                        void-icon="star"
+                        void-color="#eee"
+                    />
+            </template>
+          </Cell>
+        </CellGroup>
+      </collapse-item>
+      <CollapseItem name="6" title="修改密码" icon="closed-eye">
         <Form @submit="submit">
           <Field
             name="oldPwd"
@@ -188,8 +251,12 @@
           </div>
         </Form>
       </CollapseItem>
-      <collapse-item name="3" title="联系客服" icon="phone-o">
-        <Cell v-for="(key, value) in title" :key="key" :title="value" :value="key" />
+      <collapse-item name="7" title="联系客服" icon="phone-o">
+        <Cell v-for="(item) of service" :key="item.id" :title="item.title" :value="item.content" />
+      </collapse-item>
+      <collapse-item name="8" title="我要推广" icon="volume-o" @click.native="refreshCode">
+        <qriously :value="qrcode"
+        :size="150" style="margin-left: 50%;transform: translateX(-50%)" />
       </collapse-item>
     </Collapse>
     <Popup v-model="show" position="bottom" closeable get-container="#app">
@@ -239,7 +306,7 @@
             <Uploader v-model="uploader" :max-count="1" />
           </template>
         </Field>
-        <Field name="state" label="状态" required>
+        <Field name="state" label="状态" v-show="false">
           <template #input>
             <RadioGroup v-model="state" direction="horizontal">
               <Radio :name="0">未被接单</Radio>
@@ -247,16 +314,19 @@
             </RadioGroup>
           </template>
         </Field>
-        <div style="margin: 16px 0">
+        <div style="margin: 16px 0" v-show="state === 0">
           <Button round block native-type="submit" type="info">提交修改</Button>
         </div>
       </Form>
-      <Button round block type="primary" @click="payOrder">立即付款</Button>
+      <Button round block type="primary" @click="payOrder" v-show="state === 0">立即付款</Button>
       <br />
-      <Button round block type="danger" @click="deleteOrder">删除</Button>
+      <Button round block type="danger" @click="deleteOrder" v-show="state !== 3">删除</Button>
     </Popup>
     <Popup v-model="show1" position="bottom">
       <Button type="danger" block @click="cancel">取消接单</Button>
+    </Popup>
+    <Popup v-model="show2" position="bottom">
+      <Button type="danger" block @click="appraise">评价</Button>
     </Popup>
     <br />
     <Button block type="info" @click="exit">退出</Button>
@@ -266,17 +336,19 @@
 <script>
 import {
   Image as VanImage,
-  Form, Field, Button, Cell,
-  RadioGroup, Radio, Notify,
+  Form, Field, Button, Cell, CellGroup,
+  RadioGroup, Radio, Notify, Rate,
   Collapse, CollapseItem, Uploader,
-  List, Card, Tag, Icon, Popup, Stepper
+  List, Card, Tag, Icon, Popup, Stepper, Dialog
 } from 'vant'
 import {
-  getUserInfo, changeAvatar, updateUserInfo, resetPassword, getServiceInfo, cancelOrder
+  getUserInfo, changeAvatar, updateUserInfo,
+  resetPassword, getServiceInfo, cancelOrder, popularization, getPayOrders, getMyComments
 } from 'api/user'
 import { getMyList, getDetail, getMyList1 } from 'api/list-data'
 import { updateRequirement, deleteRequirement } from 'api/add-news'
 import avatar from 'assets/img/avatar.png'
+import News from '../../views/News.vue'
 
 export default {
   name: 'Profile',
@@ -297,6 +369,9 @@ export default {
     Popup,
     Stepper,
     Cell,
+    News,
+    CellGroup,
+    Rate,
   },
   data() {
     return {
@@ -324,7 +399,16 @@ export default {
       id: '',
       state: '',
       show1: false,
-      title: { qq: '', 微信: '', 公众号: '' }
+      title: { qq: '', 微信: '', 公众号: '' },
+      description: '',
+      qrcode: '',
+      service: [],
+      payInfo: [],
+      payId: '',
+      show2: false,
+      comments: [],
+      system: [],
+      msgCount: []
     };
   },
   filters: {
@@ -341,6 +425,17 @@ export default {
     },
     'receive notify': function (data) { // eslint-disable-line
       this.$store.commit('setNotices', data)
+    },
+    'system notify': function(data) { // eslint-disable-line
+      this.system.push(data)
+      if (!data.is_read) {
+        Dialog.alert({ title: '系统通知', message: data.content }).then(() => {
+          this.$socket.emit('system notify', { id: data.id, token: localStorage.getItem('token').slice(7) })
+        })
+      }
+    },
+    'read_msg': function(data) { // eslint-disable-line
+      this.msgCount.push(data)
     }
   },
   mounted() {
@@ -357,7 +452,7 @@ export default {
           localStorage.setItem('nickname', res.data.nickname)
         }
         const {
-          nickname, email, mobile, qq, wx, user_type, user_pic, id
+          nickname, email, mobile, qq, wx, user_type, user_pic, id, description
         } = res.data
         localStorage.setItem('id', id)
         this.avatar = user_pic || avatar
@@ -367,6 +462,7 @@ export default {
         this.qq = qq
         this.wx = wx
         this.radio = user_type ? 1 : 0
+        this.description = description
         this.$store.commit('setIsUser', user_type)
       })
       .catch(() => {
@@ -375,10 +471,24 @@ export default {
     getServiceInfo()
       .then((res) => {
         this.service = res.data
-        this.title.qq = res.data.QQ
-        this.title.微信 = res.data.weixin
-        this.title.公众号 = res.data.gongzhonghao
       })
+    getPayOrders().then((res) => {
+      this.payInfo = res.data
+    })
+    getMyComments().then((res) => {
+      res.data.forEach((item) => {
+        if (item.evaluate === 0) {
+          item.evaluate = '差评'
+        }
+        if (item.evaluate === 1) {
+          item.evaluate = '中评'
+        }
+        if (item.evaluate === 2) {
+          item.evaluate = '好评'
+        }
+      })
+      this.comments = res.data
+    })
   },
   methods: {
     onSubmit(vals) {
@@ -395,9 +505,13 @@ export default {
       const base64 = { avatar: file.content }
       changeAvatar(base64)
         .then((res) => {
-          Notify({ type: 'success', message: res.message })
-          this.avatar = file.content
-          localStorage.setItem('avatar', file.content)
+          if (res.status === 400) {
+            Notify({ type: 'danger', message: '非法图片' })
+          } else {
+            Notify({ type: 'success', message: res.message })
+            this.avatar = file.content
+            localStorage.setItem('avatar', file.content)
+          }
         })
         .catch(() => {
           Notify({ type: 'warning', message: '请求超时' })
@@ -470,28 +584,7 @@ export default {
     },
     modifyOrder(id) {
       getDetail(id).then((res) => {
-        switch (res.data.cate_name) {
-          case '工科业务':
-            res.data.cate_name = 1
-            break;
-          case '社科业务':
-            res.data.cate_name = 2
-            break
-          case '没接汇总':
-            res.data.cate_name = 3
-            break
-          case '论文辅导':
-            res.data.cate_name = 4
-            break
-          case 'web开发':
-            res.data.cate_name = 5
-            break
-          case '企业项目':
-            res.data.cate_name = 6
-            break
-          default:
-            Notify({ type: 'danger', message: '该分类不存在' })
-        }
+        res.data.cate_name = res.data.id
         this.price = res.data.price
         if (res.data.cover_img) {
           this.uploader = []
@@ -555,6 +648,18 @@ export default {
     },
     payOrder() {
       this.$router.push(`/pay-order/${this.id}`)
+    },
+    refreshCode() {
+      popularization().then((res) => {
+        this.qrcode = res.url
+      })
+    },
+    appraise() {
+      this.$router.push(`/comment/${this.payId}`)
+    },
+    showPop(id, status) {
+      this.show2 = true
+      this.payId = id
     }
   }
 };

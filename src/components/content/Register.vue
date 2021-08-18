@@ -36,14 +36,9 @@
         type="tel"
         label="手机号"
         placeholder="手机号"
-        :rules="[{ required: true, message: '请填写手机号' }]"
-      />
-      <Field
-        v-model="email"
-        name="email"
-        label="邮箱"
-        placeholder="邮箱"
-        :rules="[{ required: true, message: '请填写邮箱' }]"
+        :rules="[{ required: true, message: '请填写手机号' },
+          { validator: validateMobile, message: '手机号格式不正确'}
+        ]"
       />
       <Field
         v-model="qq"
@@ -68,6 +63,12 @@
           </RadioGroup>
         </template>
       </Field>
+      <Field v-model="description"
+      name="description"
+      label="描述" placeholder="请用一段话来描述自己" :rules="[{ required: true }]" v-show="radio === 0"/>
+      <Field v-model="description"
+      name="description"
+      label="技能展示" placeholder="请介绍自己擅长的技术或方向" :rules="[{ required: true }]" v-show="radio === 1"/>
       <div style="margin: 16px 0">
         <Button round block native-type="submit" type="info">提交</Button>
       </div>
@@ -96,21 +97,24 @@ export default {
       password: '',
       confirm: '',
       mobile: '',
-      email: '',
       qq: '',
       wx: '',
       radio: 0,
+      description: '',
     };
   },
   methods: {
     onSubmit(values) {
       delete values.confirm
+      if (this.$route.query.code) {
+        values.code = this.$route.query.code
+      }
       register(values).then((res) => {
-        if (res.status === 403) {
-          Notify({ type: 'danger', message: res.data.message })
-        } else {
+        if (res.status === 0) {
           Notify({ type: 'success', message: '注册成功' })
           this.$emit('success')
+        } else {
+          Notify({ type: 'danger', message: res.data.message })
         }
       }).catch((err) => {
         Notify({ type: 'warning', message: '请求超时' })
@@ -124,6 +128,12 @@ export default {
     },
     validatePass(vals) {
       return /^.{6,12}$/.test(vals)
+    },
+    validateEmail(vals) {
+      return /^[a-z0-9]+([._\\-]*[a-z0-9])*@([a-z0-9]+[-a-z0-9]*[a-z0-9]+.){1,63}[a-z0-9]+$/.test(vals)
+    },
+    validateMobile(vals) {
+      return /^1[3456789]\d{9}$/.test(vals)
     }
   }
 };

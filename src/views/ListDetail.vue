@@ -12,7 +12,7 @@
       </template>
     </NavBar>
     <div class="detail" style="background-color: #fff; padding: 10px; margin-top: 10px">
-      <div class="info">
+      <div class="info" @click="openProfile">
         <VanImage :src="author_picture" fit="cover" radius="5px" width="40px" height="40px" />
         <span class="name">{{author_name}}</span>
       </div>
@@ -38,11 +38,12 @@
       {{view_count}}
       <br />
       <br />
-      <Button plain type="info" size="large" @click="takeOrder" v-show="state===0">立即接单</Button>
+      <Button plain type="info"
+      size="large" @click="takeOrder" v-show="state === 0 || state === 2">立即接单</Button>
       <br />
       <br />
-      <Button plain
-      type="warning" size="large" @click="enterRoom" v-show="id !== author_id">进入聊天</Button>
+      <Button plain type="warning"
+      size="large" @click="enterRoom" v-show="id !== author_id">进入聊天</Button>
     </div>
   </div>
 </template>
@@ -52,7 +53,7 @@ import {
   NavBar, Icon, Image as VanImage, Tag, Button, Notify, ImagePreview
 } from 'vant'
 import { getDetail } from 'api/list-data'
-import { takeOrder, getUserInfo } from 'api/user'
+import { takeOrder } from 'api/user'
 
 export default {
   name: 'ListDetail',
@@ -74,13 +75,14 @@ export default {
       list: [],
       id: localStorage.getItem('id'),
       author_id: '',
+      room_id: ''
     };
   },
   mounted() {
     getDetail(this.$route.params.id).then((res) => {
       const {
         cate_name, price, state, title, view_count,
-        cover_img, content, pub_date, author_name, author_pic, author_id, id
+        cover_img, content, pub_date, author_name, author_pic, author_id, id, room_id
       } = res.data
       this.cate_name = cate_name
       this.price = price
@@ -93,6 +95,7 @@ export default {
       this.author_name = author_name
       this.author_picture = author_pic
       this.author_id = author_id
+      this.room_id = room_id
       this.$store.commit('setNoticeId', id)
     })
   },
@@ -110,20 +113,34 @@ export default {
   },
   methods: {
     takeOrder() {
-      takeOrder(this.$route.params.id).then((res) => {
-        if (!res.status) {
-          Notify({ type: 'success', message: '接单成功' })
-          this.state = 1
-        } else if (res.status === 403) {
-          Notify({ type: 'danger', message: res.data.message })
-        }
-      })
+      if (this.state === 0) {
+        Notify({ type: 'warning', message: '请先联系发单者付款后即可接单' })
+      } else {
+        takeOrder(this.$route.params.id).then((res) => {
+          if (!res.status) {
+            Notify({ type: 'success', message: '接单成功' })
+            this.state = 1
+          } else if (res.status === 403) {
+            Notify({ type: 'danger', message: res.data.message })
+          }
+        })
+      }
     },
     showImage() {
       ImagePreview([this.cover_img])
     },
     enterRoom() {
-      this.$socket.emit('create_room', { token: localStorage.getItem('token').slice(7), deliver_id: this.author_id })
+      if (this.room_id === 'None') {
+        this.$socket.emit('create_room', { token: localStorage.getItem('token').slice(7), deliver_id: this.author_id, notice_id: this.$route.params.id })
+      } else {
+        this.$router.push(`/chat-room/${this.room_id}`)
+      }
+    },
+    openProfile() {
+      if (this.author_id === localStorage.getItem('id')) { // eslint-disable-line
+      } else {
+        this.$router.push(`/other-profile/${this.author_id}`)
+      }
     }
   }
 };
